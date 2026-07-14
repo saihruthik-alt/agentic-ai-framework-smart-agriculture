@@ -1,4 +1,4 @@
-# Smart Agriculture: Agentic AI Platform
+# Agentic AI Framework for Smart Agriculture
 
 An enterprise-grade, multi-agent AI platform built to revolutionize precision agriculture. The system automates monitoring, optimizes resource usage (water and fertilizers), detects crop diseases, monitors inventory, and forecasts market trends.
 

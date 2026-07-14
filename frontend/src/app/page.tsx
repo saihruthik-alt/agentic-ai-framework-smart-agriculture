@@ -125,7 +125,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="font-bold text-md leading-none text-emerald-400">AGRI-AGENT</h1>
-              <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Precision Platform</span>
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Agentic AI Framework</span>
             </div>
           </div>
 

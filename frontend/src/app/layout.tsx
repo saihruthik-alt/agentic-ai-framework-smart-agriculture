@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AgriAgent - Agentic precision farming platform",
+  title: "Agentic AI Framework for Smart Agriculture",
   description: "An industry-grade Agentic AI framework designed to assist farmers by autonomously monitoring, analyzing, planning, and recommending farming activities in real time.",
 };
 

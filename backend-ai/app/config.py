@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Smart Agriculture AI Orchestrator"
+    PROJECT_NAME: str = "Agentic AI Framework for Smart Agriculture"
     API_V1_STR: str = "/api/v1"
     
     # Databases
