@@ -13,27 +13,48 @@ The system utilizes a cloud-native microservices architecture:
 
 ---
 
-## 🚀 Phase 1: Local Development & Diagnostics
+## 💻 Running in GitHub Codespaces
 
-Phase 1 establishes the baseline project structures, API health checks, and fallback mechanisms for offline testing.
+GitHub Codespaces provides a pre-configured cloud environment with Docker, Java, Python, and Node.js already installed. 
 
-### Resilient Offline Fallbacks
-To allow immediate compilation and testing without requiring Docker or active PostgreSQL/Redis instances:
-1. **Spring Boot Core** automatically falls back to an **H2 in-memory SQL database** under the `h2` profile.
-2. **FastAPI AI Backend** automatically falls back to a local **SQLite database** file (`smart_agriculture.db`) if PostgreSQL is offline.
+To run the full stack in a Codespace (using the active PostgreSQL, Redis, and MinIO databases):
+
+1. **Start the Database Containers**:
+   Codespaces supports Docker-in-Docker out of the box. Run this from the root folder:
+   ```bash
+   docker compose up -d
+   ```
+2. **Start the Core Backend (Spring Boot)**:
+   ```bash
+   cd backend-core
+   mvn spring-boot:run
+   ```
+3. **Start the AI Backend (FastAPI)**:
+   In a new terminal:
+   ```bash
+   cd backend-ai
+   python3 -m venv venv && source venv/bin/activate
+   pip install -r requirements.txt
+   uvicorn app.main:app --port 8000
+   ```
+4. **Start the Frontend (Next.js)**:
+   In a new terminal:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
 
 ---
 
-## 🛠️ How to Run Phase 1
+## 🛠️ Running Locally (Standalone Offline Mode)
 
-### Prerequisites
-- **Java**: JDK 21 (or 17+)
-- **Python**: Python 3.9+
-- **Node.js**: Node 18+ (npm / npx)
-- **Maven**: Maven 3.9+
+If you are running on a local machine without Docker installed, you can use our built-in offline database fallbacks:
+- **Spring Boot Core** automatically falls back to an **H2 in-memory SQL database** under the `h2` profile.
+- **FastAPI AI Backend** automatically falls back to a local **SQLite database** file (`smart_agriculture.db`) if PostgreSQL is offline.
 
-### 1. Run the Automated Diagnostics (Recommended)
-We provided a script that boots both backends in fallback mode, curls their health endpoints, prints status JSONs, and shuts them down safely.
+### 1. Run the Automated Diagnostics
+We provide a script that boots both backends in standalone fallback mode, checks their health endpoints, prints status JSONs, and shuts them down safely.
 ```bash
 chmod +x verify_phase1.sh
 ./verify_phase1.sh
@@ -45,7 +66,6 @@ chmod +x verify_phase1.sh
 Starts on port `8080` (endpoints base: `/api/v1`):
 ```bash
 cd backend-core
-# Force compile and run with the H2 database profile
 mvn spring-boot:run -Dspring-boot.run.profiles=h2
 ```
 *Verify Health*: Visit `http://localhost:8080/api/v1/health`
@@ -54,9 +74,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=h2
 Starts on port `8000` (endpoints base: `/api/v1`):
 ```bash
 cd backend-ai
-# Activate python virtual environment
 source venv/bin/activate
-# Start development server
 uvicorn app.main:app --port 8000
 ```
 *Verify Health*: Visit `http://localhost:8000/api/v1/health`
@@ -65,6 +83,7 @@ uvicorn app.main:app --port 8000
 Starts on port `3000`:
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 *Verify UI*: Open `http://localhost:3000` in your browser.
