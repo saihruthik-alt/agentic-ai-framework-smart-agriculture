@@ -1,0 +1,45 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: backend-core
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smart_agriculture
+    username: agri_user
+    password: agri_pass
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: minio_admin
+  secret-key: minio_password
+  bucket: smart-agri-bucket
+
+jwt:
+  secret: 9a4f2c8d3e1b7f0a5c3d2e1f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b
+  expiration: 86400000 # 24 hours
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.security: INFO

@@ -1,0 +1,54 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Build logs
+*.log
+spring_boot.log
+fastapi.log
+
+# Node (Frontend)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnp*
+frontend/.pnp.js
+
+# Java / Maven (Core Backend)
+backend-core/target/
+backend-core/*.class
+backend-core/.classpath
+backend-core/.project
+backend-core/.settings/
+backend-core/.factorypath
+backend-core/bin/
+
+# Python (AI Backend)
+backend-ai/venv/
+backend-ai/.venv/
+backend-ai/env/
+backend-ai/__pycache__/
+backend-ai/*.pyc
+backend-ai/*.pyo
+backend-ai/*.pyd
+backend-ai/.pytest_cache/
+backend-ai/.env
+
+# Databases / Local storage
+backend-ai/smart_agriculture.db
+postgres_data/
+redis_data/
+minio_data/
