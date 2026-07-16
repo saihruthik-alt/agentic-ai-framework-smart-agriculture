@@ -84,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }));
 
       setUser(session);
+      setLoading(false);
       router.push("/");
     } catch (error) {
       setLoading(false);
@@ -127,6 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }));
 
       setUser(session);
+      setLoading(false);
       router.push("/");
     } catch (error) {
       setLoading(false);
