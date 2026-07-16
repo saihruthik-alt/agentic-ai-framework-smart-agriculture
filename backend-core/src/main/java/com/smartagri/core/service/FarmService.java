@@ -39,4 +39,10 @@ public class FarmService {
         return farmRepository.findByIdAndOwner(farmId, owner)
                 .orElseThrow(() -> new IllegalArgumentException("Farm not found or access denied"));
     }
+
+    @Transactional
+    public void deleteFarm(UUID farmId, String username) {
+        Farm farm = getFarmById(farmId, username);
+        farmRepository.delete(farm);
+    }
 }

@@ -67,4 +67,28 @@ public class FarmController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+
+    @DeleteMapping("/{farmId}")
+    public ResponseEntity<Void> deleteFarm(@PathVariable UUID farmId, Principal principal) {
+        try {
+            farmService.deleteFarm(farmId, principal.getName());
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @DeleteMapping("/{farmId}/crops/{cropId}")
+    public ResponseEntity<Void> deleteCrop(
+            @PathVariable UUID farmId,
+            @PathVariable UUID cropId,
+            Principal principal
+    ) {
+        try {
+            cropService.deleteCrop(farmId, cropId, principal.getName());
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }

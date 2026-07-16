@@ -450,6 +450,53 @@ export default function Dashboard() {
     }
   };
 
+  // Delete Farm
+  const handleDeleteFarm = async (farmId: string) => {
+    if (!user) return;
+    if (!confirm("Are you sure you want to delete this farm profile and all its associated crops?")) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${user.token}`
+        }
+      });
+      if (res.ok) {
+        localStorage.removeItem(`farm_unit_${farmId}`);
+        localStorage.removeItem(`farm_loc_${farmId}`);
+        if (selectedFarm?.id === farmId) {
+          setSelectedFarm(null);
+        }
+        fetchFarms();
+      } else {
+        alert("Failed to delete farm.");
+      }
+    } catch {
+      alert("Error connecting to server.");
+    }
+  };
+
+  // Delete Crop
+  const handleDeleteCrop = async (cropId: string) => {
+    if (!user || !selectedFarm) return;
+    if (!confirm("Are you sure you want to delete this crop record?")) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/crops/${cropId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${user.token}`
+        }
+      });
+      if (res.ok) {
+        fetchCrops(selectedFarm.id);
+      } else {
+        alert("Failed to delete crop.");
+      }
+    } catch {
+      alert("Error connecting to server.");
+    }
+  };
+
   // Trigger Mock Moisture drop
   const triggerMoistureDrop = () => {
     setAlphaMoisture(24);
@@ -1125,20 +1172,28 @@ export default function Dashboard() {
                     ) : (
                       <div className="space-y-2">
                         {farms.map((f) => (
-                          <button
-                            key={f.id}
-                            onClick={() => setSelectedFarm(f)}
-                            className={`w-full flex justify-between items-center p-3.5 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
-                              selectedFarm?.id === f.id
-                                ? "border-emerald-500 bg-emerald-950/20 text-emerald-300"
-                                : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 text-zinc-400"
-                            }`}
-                          >
-                            <span className="font-bold">{f.name}</span>
-                            <span className="text-[9px] uppercase tracking-wider bg-zinc-850 px-2 py-0.5 rounded text-zinc-300 border border-zinc-800 font-mono">
-                              {f.totalAreaHectares.toFixed(1)} {f.areaUnit || "acres"}
-                            </span>
-                          </button>
+                          <div key={f.id} className="flex gap-2 items-center">
+                            <button
+                              onClick={() => setSelectedFarm(f)}
+                              className={`flex-1 flex justify-between items-center p-3.5 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
+                                selectedFarm?.id === f.id
+                                  ? "border-emerald-500 bg-emerald-950/20 text-emerald-300"
+                                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 text-zinc-400"
+                              }`}
+                            >
+                              <span className="font-bold">{f.name}</span>
+                              <span className="text-[9px] uppercase tracking-wider bg-zinc-850 px-2 py-0.5 rounded text-zinc-300 border border-zinc-800 font-mono">
+                                {f.totalAreaHectares.toFixed(1)} {f.areaUnit || "acres"}
+                              </span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFarm(f.id)}
+                              className="p-3.5 rounded-xl border border-rose-900/40 hover:bg-rose-950/30 text-rose-450 hover:text-rose-350 transition-colors text-xs cursor-pointer"
+                              title="Delete Farm"
+                            >
+                              🗑️
+                            </button>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -1241,6 +1296,7 @@ export default function Dashboard() {
                                   <th className="pb-3">Planted At</th>
                                   <th className="pb-3">Est. Harvest</th>
                                   <th className="pb-3">Status</th>
+                                  <th className="pb-3 text-right">Action</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-zinc-850">
@@ -1254,6 +1310,14 @@ export default function Dashboard() {
                                       <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950/30 text-emerald-400 border border-emerald-800/20">
                                         {c.status}
                                       </span>
+                                    </td>
+                                    <td className="py-3.5 text-right">
+                                      <button
+                                        onClick={() => c.id && handleDeleteCrop(c.id)}
+                                        className="text-rose-455 hover:text-rose-355 hover:bg-rose-950/20 px-2.5 py-1 rounded-lg border border-rose-900/30 transition-colors cursor-pointer text-[10px] font-bold"
+                                      >
+                                        Delete
+                                      </button>
                                     </td>
                                   </tr>
                                 ))}

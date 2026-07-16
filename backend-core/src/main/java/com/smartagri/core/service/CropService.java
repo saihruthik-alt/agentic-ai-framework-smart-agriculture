@@ -33,4 +33,15 @@ public class CropService {
         Farm farm = farmService.getFarmById(farmId, username);
         return cropRepository.findByFarm(farm);
     }
+
+    @Transactional
+    public void deleteCrop(UUID farmId, UUID cropId, String username) {
+        Farm farm = farmService.getFarmById(farmId, username);
+        Crop crop = cropRepository.findById(cropId)
+                .orElseThrow(() -> new IllegalArgumentException("Crop not found"));
+        if (!crop.getFarm().getId().equals(farm.getId())) {
+            throw new IllegalArgumentException("Crop does not belong to this farm");
+        }
+        cropRepository.delete(crop);
+    }
 }
