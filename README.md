@@ -97,6 +97,10 @@ chmod +x verify_phase2.sh
 ## 🗺️ Project Roadmap
 - [x] **Phase 1: Architecture & Skeletons**
 - [x] **Phase 2: Security & Profile Services**
+  - Implement Spring Security with multi-tenant JWT and custom CORS configurations.
+  - Support logging in via Username or registered Email address with detailed validation feedback.
+  - Develop Farm and Crop profile database CRUD services.
+  - Add Next.js login/registration flow and auth middleware guards.
 - [ ] **Phase 3: LangGraph Agent Engine & RAG** *(Up Next)*
 - [ ] **Phase 4: Advanced Agents & CV Leaf Disease Detection**
 - [ ] **Phase 5: DevOps, Monitoring & Production Deployment**
