@@ -39,10 +39,14 @@ public class AuthController {
         try {
             AuthResponse response = authService.login(request);
             return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid username or password");
-            return ResponseEntity.badRequest().body(error);
+            error.put("error", "An error occurred during authentication.");
+            return ResponseEntity.status(500).body(error);
         }
     }
 }

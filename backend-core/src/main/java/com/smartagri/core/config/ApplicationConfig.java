@@ -24,13 +24,14 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
+        return usernameOrEmail -> userRepository.findByUsername(usernameOrEmail)
+                .or(() -> userRepository.findByEmail(usernameOrEmail))
                 .map(user -> new User(
                         user.getUsername(),
                         user.getPasswordHash(),
                         Collections.singleton(() -> "ROLE_" + user.getRole().name())
                 ))
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail));
     }
 
     @Bean

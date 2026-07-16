@@ -63,15 +63,20 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .or(() -> userRepository.findByEmail(request.getUsername()))
+                .orElseThrow(() -> new IllegalArgumentException("Username or email not found"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid password");
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
+                        user.getUsername(),
                         request.getPassword()
                 )
         );
-
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         String token = jwtService.generateToken(userDetails, user.getId(), user.getRole().name());

@@ -53,7 +53,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="username-input" className="block text-xs font-semibold text-zinc-400 mb-2">
-                Username
+                Username or Email Address
               </label>
               <input
                 id="username-input"
@@ -63,7 +63,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full rounded-xl border border-zinc-800 bg-[#07070a] px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:border-emerald-500 focus:outline-none transition-colors"
-                placeholder="Enter your username"
+                placeholder="Enter your username or email"
               />
             </div>
             <div>

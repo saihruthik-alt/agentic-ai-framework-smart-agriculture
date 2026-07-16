@@ -51,13 +51,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, password: string) => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/api/v1/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-      });
+      let response;
+      try {
+        response = await fetch("http://localhost:8080/api/v1/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+      } catch (err) {
+        throw new Error("Could not connect to the backend authentication server. Please ensure that your Spring Boot service is active on port 8080.");
+      }
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(data.error || "Authentication failed");
       }
@@ -89,13 +94,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (username: string, email: string, password: string, role: string) => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/api/v1/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password, role })
-      });
+      let response;
+      try {
+        response = await fetch("http://localhost:8080/api/v1/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password, role })
+        });
+      } catch (err) {
+        throw new Error("Could not connect to the backend authentication server. Please ensure that your Spring Boot service is active on port 8080.");
+      }
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(data.error || "Registration failed");
       }

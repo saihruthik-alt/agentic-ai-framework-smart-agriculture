@@ -34,21 +34,37 @@ if [ -z "$TOKEN" ]; then
 fi
 echo "SUCCESS: Token extracted: ${TOKEN:0:15}..."
 
-# 2. Test login
-echo "Testing User Login..."
+# 2. Test login using Username
+echo "Testing User Login via Username..."
 LOGIN_RESPONSE=$(curl -s -X POST http://localhost:${CORE_PORT}/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"verifyfarmer","password":"testpassword123"}')
 
-echo "Login Response: ${LOGIN_RESPONSE}"
+echo "Username Login Response: ${LOGIN_RESPONSE}"
 LOGIN_TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"token":"[^"]*' | grep -o '[^"]*$')
 
 if [ -z "$LOGIN_TOKEN" ]; then
-  echo "ERROR: Failed to login and extract JWT token!"
+  echo "ERROR: Failed to login via username!"
   kill -9 $CORE_PID 2>/dev/null || true
   exit 1
 fi
-echo "SUCCESS: Login JWT validated."
+echo "SUCCESS: Username Login JWT validated."
+
+# 2b. Test login using Email
+echo "Testing User Login via Email..."
+LOGIN_EMAIL_RESPONSE=$(curl -s -X POST http://localhost:${CORE_PORT}/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"verify@farmer.com","password":"testpassword123"}')
+
+echo "Email Login Response: ${LOGIN_EMAIL_RESPONSE}"
+LOGIN_EMAIL_TOKEN=$(echo $LOGIN_EMAIL_RESPONSE | grep -o '"token":"[^"]*' | grep -o '[^"]*$')
+
+if [ -z "$LOGIN_EMAIL_TOKEN" ]; then
+  echo "ERROR: Failed to login via email!"
+  kill -9 $CORE_PID 2>/dev/null || true
+  exit 1
+fi
+echo "SUCCESS: Email Login JWT validated."
 
 # 3. Test creating a farm profile (Secured endpoint using JWT)
 echo "Testing Secured Create Farm API..."
