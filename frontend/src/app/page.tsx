@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useRouter } from "next/navigation";
 
 // Mock Agent logs representing real-time multi-agent cooperation
 const INITIAL_AGENT_LOGS = [
@@ -49,6 +51,9 @@ interface ServiceHealth {
 }
 
 export default function Dashboard() {
+  const { user, loading: authLoading, logout } = useAuth();
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [agentLogs, setAgentLogs] = useState(INITIAL_AGENT_LOGS);
   const [coreHealth, setCoreHealth] = useState<ServiceHealth | null>(null);
@@ -83,7 +88,15 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchHealthChecks();
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      fetchHealthChecks();
+    }
     // Simulate real-time logs arriving every 12 seconds
     const interval = setInterval(() => {
       const randomLogs = [
@@ -112,6 +125,24 @@ export default function Dashboard() {
 
     return () => clearInterval(interval);
   }, []);
+
+  if (authLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#07070a] text-zinc-400 font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <svg className="animate-spin h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span className="text-xs tracking-wider">Verifying session...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#07070a] text-zinc-100 font-sans">
@@ -152,6 +183,14 @@ export default function Dashboard() {
                 <span>{item.label}</span>
               </button>
             ))}
+            <button
+              onClick={logout}
+              id="logout-btn"
+              className="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium text-rose-400/80 hover:bg-rose-950/20 hover:text-rose-300 border border-transparent transition-all duration-200 mt-4 cursor-pointer"
+            >
+              <span>🚪</span>
+              <span>Sign Out</span>
+            </button>
           </nav>
         </div>
 
@@ -205,8 +244,8 @@ export default function Dashboard() {
         {/* Header */}
         <header className="h-16 border-b border-zinc-800 bg-[#09090f] px-8 flex items-center justify-between">
           <div>
-            <h2 className="text-sm text-zinc-400">Welcome back, Chief Agronomist</h2>
-            <p className="text-xs text-zinc-600">Active Location: GreenValley Farms (A-B Fields)</p>
+            <h2 className="text-sm text-zinc-400">Welcome back, {user?.username}</h2>
+            <p className="text-xs text-zinc-600">Role: {user?.role} | Active Location: GreenValley Farms</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 border border-zinc-800 bg-[#0d0d15] rounded-full py-1.5 px-3.5 text-xs">
