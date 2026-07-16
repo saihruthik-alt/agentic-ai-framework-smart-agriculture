@@ -4,42 +4,42 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 
-// Initial logs
+// Initial real-time action logs with realistic Indian farming inputs
 const INITIAL_AGENT_LOGS = [
   {
     time: "12:00:15",
     agent: "System",
-    message: "Initializing smart farming multi-agent registry...",
+    message: "Initializing smart farming multi-agent telemetry registry...",
     type: "system",
   },
   {
     time: "12:00:18",
     agent: "Weather Agent",
-    message: "Fetching local microclimate forecasts. Heavy rain predicted in 18 hours (probability 85%).",
+    message: "Analyzing IMD radar feeds for Guntur region. Scattered light showers predicted in 24 hours (2.5mm precipitation).",
     type: "weather",
   },
   {
     time: "12:00:22",
     agent: "Irrigation Agent",
-    message: "Querying Field A soil moisture level. Current moisture: 32% (under threshold of 35%).",
+    message: "Soil moisture probe in Field 1 reports 32% (under threshold of 35%). Water stress detected.",
     type: "irrigation",
   },
   {
     time: "12:00:25",
     agent: "Irrigation Agent",
-    message: "Precipitation forecast is high. Overriding standard watering scheduler. Irrigation deferred to conserve water.",
+    message: "Overriding water schedule: Incoming showers are minor. Directing smart drip valves to release 10L/m for 15 minutes.",
     type: "irrigation_ok",
   },
   {
     time: "12:00:30",
     agent: "Fertilizer Agent",
-    message: "Field B Soil analysis: Nitrogen 18 mg/kg (Deficient). Phosphorus 24 mg/kg (Optimal).",
+    message: "Field 2 Soil check: Nitrogen is 14 mg/kg (Deficient). Phosphorus is 24 mg/kg (Optimal).",
     type: "fertilizer",
   },
   {
     time: "12:00:35",
     agent: "Fertilizer Agent",
-    message: "Action plan generated: Apply nitrogen-rich organic urea ahead of the incoming rain to optimize soil absorption.",
+    message: "Action plan generated: Apply nitrogen-rich urea (4kg/acre) to correct soil deficiency before rain arrival.",
     type: "fertilizer_plan",
   },
 ];
@@ -57,7 +57,8 @@ interface Farm {
   longitude: number;
   soilType: string;
   totalAreaHectares: number;
-  areaUnit?: string; // acres or hectares
+  areaUnit?: string;
+  locationName?: string;
 }
 
 interface Crop {
@@ -68,6 +69,25 @@ interface Crop {
   harvestPlannedAt: string;
   status: string;
 }
+
+// Realistic locations in AP & Telangana with soil characteristics
+const REALISTIC_LOCATIONS = [
+  { name: "Guntur (Black Cotton Soil)", latitude: 16.3067, longitude: 80.4365, defaultSoil: "Black Cotton", tempRange: "30°C - 38°C", avgRainfall: "850mm" },
+  { name: "Anantapur (Red Sandy Loam)", latitude: 14.6819, longitude: 77.6006, defaultSoil: "Sandy Loam", tempRange: "32°C - 42°C", avgRainfall: "550mm" },
+  { name: "Chittoor (Red Loamy Soil)", latitude: 13.2172, longitude: 79.1003, defaultSoil: "Red Loamy", tempRange: "28°C - 36°C", avgRainfall: "900mm" },
+  { name: "Karimnagar (Alluvial Rice Plains)", latitude: 18.4386, longitude: 79.1288, defaultSoil: "Alluvial Clay", tempRange: "29°C - 38°C", avgRainfall: "950mm" },
+  { name: "Khammam (Cotton & Chilli Belt)", latitude: 17.2473, longitude: 80.1514, defaultSoil: "Clay Loam", tempRange: "30°C - 40°C", avgRainfall: "1050mm" }
+];
+
+// Available crops in English with Telugu translation in brackets
+const AVAILABLE_CROPS = [
+  { value: "Rice", label: "Rice (వరి - Vari)", varieties: ["BPT 5204 (Samba Masuri)", "Nellore Sannalu", "MTU 1010"] },
+  { value: "Cotton", label: "Cotton (ప్రత్తి - Pratti)", varieties: ["Kaveri Jadoo", "Ajit 155", "BG II Hybrid"] },
+  { value: "Chilli", label: "Chilli (మిరపకాయ - Mirapakaya)", varieties: ["Guntur Sannam S4", "Teja Chilli", "Byadagi"] },
+  { value: "Groundnut", label: "Groundnut (వేరుశనగ - Verusenaga)", varieties: ["Kadiri 9", "K 6", "TAG 24"] },
+  { value: "Maize", label: "Maize (మొక్కజొన్న - Mokkajonna)", varieties: ["Pioneer 3396", "DHM 117", "Dekalb 9108"] },
+  { value: "Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"] }
+];
 
 export default function Dashboard() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -92,15 +112,15 @@ export default function Dashboard() {
   
   // New Farm form
   const [newFarmName, setNewFarmName] = useState("");
-  const [newFarmSoil, setNewFarmSoil] = useState("Clay");
-  const [newFarmArea, setNewFarmArea] = useState("12.5");
-  const [areaUnit, setAreaUnit] = useState("acres"); // default to acres
+  const [locationIndex, setLocationIndex] = useState(0); // index for REALISTIC_LOCATIONS
+  const [newFarmArea, setNewFarmArea] = useState("10.0");
+  const [areaUnit, setAreaUnit] = useState("acres"); 
   const [farmError, setFarmError] = useState("");
   const [farmSuccess, setFarmSuccess] = useState("");
 
   // New Crop form
-  const [newCropName, setNewCropName] = useState("");
-  const [newCropVariety, setNewCropVariety] = useState("");
+  const [newCropIndex, setNewCropIndex] = useState(0); // index for AVAILABLE_CROPS
+  const [newCropVariety, setNewCropVariety] = useState(AVAILABLE_CROPS[0].varieties[0]);
   const [newCropPlanted, setNewCropPlanted] = useState(new Date().toISOString().split("T")[0]);
   const [newCropHarvest, setNewCropHarvest] = useState("");
   const [cropError, setCropError] = useState("");
@@ -110,7 +130,8 @@ export default function Dashboard() {
   const [alphaMoisture, setAlphaMoisture] = useState(38);
   const [betaMoisture, setBetaMoisture] = useState(41);
   const [selectedField, setSelectedField] = useState<string | null>(null);
-  const [nitrogenLevel, setNitrogenLevel] = useState(18);
+  const [nitrogenLevel, setNitrogenLevel] = useState(14);
+  const [phosphorusLevel, setPhosphorusLevel] = useState(24);
   
   // AI Agent chat interactive states
   const [selectedChatAgent, setSelectedChatAgent] = useState("Weather Agent");
@@ -159,11 +180,15 @@ export default function Dashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Set unit based on localstorage or default
-        const parsed = data.map((f: any) => ({
-          ...f,
-          areaUnit: localStorage.getItem(`farm_unit_${f.id}`) || "acres"
-        }));
+        const parsed = data.map((f: any) => {
+          const locName = localStorage.getItem(`farm_loc_${f.id}`) || "Guntur (Black Cotton Soil)";
+          const unit = localStorage.getItem(`farm_unit_${f.id}`) || "acres";
+          return {
+            ...f,
+            areaUnit: unit,
+            locationName: locName
+          };
+        });
         setFarms(parsed);
         if (parsed.length > 0 && !selectedFarm) {
           setSelectedFarm(parsed[0]);
@@ -202,11 +227,12 @@ export default function Dashboard() {
     setFarmError("");
     setFarmSuccess("");
 
+    const targetLoc = REALISTIC_LOCATIONS[locationIndex];
+
     try {
-      // API expects totalAreaHectares
       let hectares = parseFloat(newFarmArea);
       if (areaUnit === "acres") {
-        hectares = hectares * 0.404686; // convert to hectares for the backend database
+        hectares = hectares * 0.404686; // convert to hectares for the database
       }
 
       const res = await fetch("http://localhost:8080/api/v1/farms", {
@@ -217,20 +243,22 @@ export default function Dashboard() {
         },
         body: JSON.stringify({
           name: newFarmName,
-          soilType: newFarmSoil,
+          soilType: targetLoc.defaultSoil,
           totalAreaHectares: hectares,
-          latitude: 12.97,
-          longitude: 77.59
+          latitude: targetLoc.latitude,
+          longitude: targetLoc.longitude
         })
       });
 
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem(`farm_unit_${data.id}`, areaUnit);
+        localStorage.setItem(`farm_loc_${data.id}`, targetLoc.name);
+        
         setFarmSuccess("Farm profile registered successfully!");
         setNewFarmName("");
         fetchFarms();
-        setSelectedFarm({ ...data, areaUnit });
+        setSelectedFarm({ ...data, areaUnit, locationName: targetLoc.name });
       } else {
         setFarmError("Failed to register farm.");
       }
@@ -246,6 +274,8 @@ export default function Dashboard() {
     setCropError("");
     setCropSuccess("");
 
+    const targetCrop = AVAILABLE_CROPS[newCropIndex];
+
     try {
       const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/crops`, {
         method: "POST",
@@ -254,7 +284,7 @@ export default function Dashboard() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: newCropName,
+          name: targetCrop.label, // English with Telugu in brackets (e.g. Tomato (టమోటా - Tomato))
           variety: newCropVariety,
           plantedAt: newCropPlanted,
           harvestPlannedAt: newCropHarvest || null,
@@ -264,8 +294,6 @@ export default function Dashboard() {
 
       if (res.ok) {
         setCropSuccess("Crop record added successfully!");
-        setNewCropName("");
-        setNewCropVariety("");
         setNewCropHarvest("");
         fetchCrops(selectedFarm.id);
       } else {
@@ -292,7 +320,7 @@ export default function Dashboard() {
       {
         time: timestamp,
         agent: "Irrigation Agent",
-        message: "Critical moisture trigger received. Checking Weather forecasts node... (No rain forecast for 6 hours).",
+        message: "Critical moisture trigger received. Checking local weather nodes... (No rain forecast for 6 hours).",
         type: "irrigation",
       },
       {
@@ -305,7 +333,7 @@ export default function Dashboard() {
 
     setAgentLogs((prev) => [...prev, ...newLogs]);
     
-    // Smoothly restore water levels after 10 seconds
+    // Restore water levels after 10 seconds
     setTimeout(() => {
       setAlphaMoisture(38);
       const restoreTimestamp = new Date().toTimeString().split(" ")[0];
@@ -323,13 +351,13 @@ export default function Dashboard() {
 
   // Trigger Mock Nitrogen drop
   const triggerNitrogenDrop = () => {
-    setNitrogenLevel(12);
+    setNitrogenLevel(8);
     const timestamp = new Date().toTimeString().split(" ")[0];
     const newLogs = [
       {
         time: timestamp,
         agent: "System",
-        message: "Sensor Feed Warn: Field Beta Nitrogen content fell to 12 mg/kg (Deficient).",
+        message: "Sensor Feed Warn: Field Beta Nitrogen content fell to 8 mg/kg (Deficient).",
         type: "disease"
       },
       {
@@ -357,18 +385,18 @@ export default function Dashboard() {
       let replyText = "";
       if (selectedChatAgent === "Weather Agent") {
         if (query.toLowerCase().includes("rain") || query.toLowerCase().includes("forecast")) {
-          replyText = "Incoming weather report: Light local rain forecasted in 18 hours. Precipitation: 3.2mm. Advising to defer irrigation on Field Alpha.";
+          replyText = `Current forecast for ${selectedFarm?.locationName || "Guntur"}: Light local rain expected tomorrow. Precipitation: 2.5mm. Irrigation deferred to conserve water.`;
         } else {
-          replyText = "Microclimate is currently dry. Wind speed 12 km/h. Temperature optimal at 28°C. Excellent growth conditions.";
+          replyText = `The current temperature in ${selectedFarm?.locationName || "Guntur"} is optimal at 32°C. Humidity is 58%. Ideal conditions for vegetative crop development.`;
         }
       } else if (selectedChatAgent === "Irrigation Agent") {
-        replyText = `Field Alpha moisture is ${alphaMoisture}%. Field Beta moisture is ${betaMoisture}%. Standard watering cycle is scheduled for 06:00 AM.`;
+        replyText = `Field Alpha moisture is ${alphaMoisture}%. Field Beta moisture is ${betaMoisture}%. Drip irrigation schedules are calculated using virtual soil profile models.`;
       } else if (selectedChatAgent === "Fertilizer Agent") {
-        replyText = `Analysis: Field B nitrogen is deficient (${nitrogenLevel} mg/kg). Suggesting organic ammonium sulfate dosage (5kg per acre) to boost vegetative node growth.`;
+        replyText = `Field B soil check: Nitrogen is deficient (${nitrogenLevel} mg/kg). Suggesting localized urea application (approx. 4.5kg per acre) to restore nitrogen levels.`;
       } else if (selectedChatAgent === "Market Agent") {
-        replyText = "Tomato wholesale index is trading at ₹120/kg (+12% growth). Wheat index is steady at ₹45/kg. Recommend tomato sales now.";
+        replyText = "Wholesale Mandi Rates: Tomato (టమోటా) is trading high at ₹120/kg. Chilli (మిరపకాయ) is bullish at ₹210/kg. Selling is highly recommended.";
       } else {
-        replyText = "I am analyzing the spatial feeds. Sensor networks are fully online and transmitting telemetry logs.";
+        replyText = "Sensor networks are virtual simulation nodes and are fully synchronized with our agricultural database.";
       }
 
       setChatResponses((prev) => [...prev, { sender: selectedChatAgent, text: replyText }]);
@@ -433,7 +461,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="font-bold text-md leading-none text-emerald-400">AGRI-AGENT</h1>
-              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Agentic AI Framework</span>
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Smart Agriculture</span>
             </div>
           </div>
 
@@ -510,8 +538,8 @@ export default function Dashboard() {
             </div>
             <div className="flex justify-between items-center pt-1 border-t border-zinc-800/50">
               <span className="text-zinc-500">Database:</span>
-              <span className="text-zinc-300">
-                {coreHealth?.database === "UP" && aiHealth?.database === "UP" ? "Connected" : "Offline"}
+              <span className="text-zinc-300 font-bold text-emerald-400">
+                {coreHealth?.database === "UP" ? "Connected" : "Offline"}
               </span>
             </div>
           </div>
@@ -524,7 +552,9 @@ export default function Dashboard() {
         <header className="h-16 border-b border-zinc-800 bg-[#09090f] px-8 flex items-center justify-between">
           <div>
             <h2 className="text-sm text-zinc-400">Welcome back, {user.username}</h2>
-            <p className="text-xs text-zinc-600 font-medium">Role: {user.role} | Active Location: GreenValley Farms</p>
+            <p className="text-xs text-zinc-600 font-medium">
+              Active Location: {selectedFarm?.locationName || "Guntur (Black Cotton Soil)"} | Role: {user.role}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 border border-zinc-800 bg-[#0d0d15] rounded-full py-1.5 px-3.5 text-xs">
@@ -588,10 +618,10 @@ export default function Dashboard() {
                   <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                     ⚠️
                   </div>
-                  <span className="text-xs text-zinc-500 font-medium">Nutrient Alerts</span>
-                  <h3 className="text-2xl font-bold mt-2 text-amber-500">{nitrogenLevel < 15 ? "Deficient" : "Optimal"}</h3>
+                  <span className="text-xs text-zinc-500 font-medium">Soil Nitrogen Level</span>
+                  <h3 className="text-2xl font-bold mt-2 text-amber-500">{nitrogenLevel} <span className="text-xs font-normal text-zinc-500">mg/kg</span></h3>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-amber-400/80">
-                    <span>{nitrogenLevel < 15 ? "Nitrogen levels are deficient" : "Nutritional levels okay"}</span>
+                    <span>{nitrogenLevel < 10 ? "Nitrogen Level Deficient!" : "Soil Nutrition Optimal"}</span>
                   </div>
                 </div>
 
@@ -602,15 +632,15 @@ export default function Dashboard() {
                   <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                     📈
                   </div>
-                  <span className="text-xs text-zinc-500 font-medium">Tomato Price Index</span>
-                  <h3 className="text-2xl font-bold mt-2 text-purple-400">₹120 <span className="text-xs font-normal">/ kg</span></h3>
+                  <span className="text-xs text-zinc-500 font-medium">Chilli Mandi Price</span>
+                  <h3 className="text-2xl font-bold mt-2 text-purple-400">₹210 <span className="text-xs font-normal">/ kg</span></h3>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
-                    <span className="text-emerald-400 font-semibold">+12% gain forecast</span>
+                    <span className="text-emerald-400 font-semibold">+14.2% Guntur Mandi Spurt</span>
                   </div>
                 </div>
               </div>
 
-              {/* Main Workspace */}
+              {/* Workable Dashboard Panels */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Field Map Layout */}
                 <div className="lg:col-span-2 border border-zinc-800/60 rounded-2xl p-6 bg-[#0a0a10]/40 flex flex-col justify-between">
@@ -618,7 +648,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between mb-6">
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-200">Interactive Farm Fields Map</h3>
-                        <p className="text-xs text-zinc-500">Select fields to view detailed crop data and soil logs</p>
+                        <p className="text-xs text-zinc-500">Click on fields to inspect vegetative index and crop health stats</p>
                       </div>
                       <span className="text-[10px] bg-zinc-800/60 border border-zinc-700/50 rounded px-2 py-0.5 text-zinc-400 uppercase font-bold">
                         Interactive Map
@@ -626,7 +656,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 h-64">
-                      {/* Field Alpha Card */}
+                      {/* Field Alpha */}
                       <div
                         onClick={() => setSelectedField(selectedField === "alpha" ? null : "alpha")}
                         className={`border rounded-2xl p-5 flex flex-col justify-between transition-all cursor-pointer ${
@@ -637,26 +667,26 @@ export default function Dashboard() {
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="text-[10px] text-emerald-500 font-bold tracking-wider uppercase">Field Alpha (Sweet Corn)</span>
-                            <h4 className="text-lg font-bold text-zinc-200 mt-1">Area A-1 Field</h4>
+                            <span className="text-[10px] text-emerald-500 font-bold tracking-wider uppercase">Field A1 (Amaravati)</span>
+                            <h4 className="text-lg font-bold text-zinc-200 mt-1">Chilli (మిరపకాయ)</h4>
                           </div>
                           <span className={`h-2.5 w-2.5 rounded-full ${alphaMoisture < 30 ? "bg-rose-500 animate-pulse" : "bg-emerald-500"}`}></span>
                         </div>
                         <div className="text-xs space-y-1 text-zinc-400">
                           <div className="flex justify-between">
-                            <span>Soil Moisture:</span>
+                            <span>Moisture level:</span>
                             <span className={`font-bold ${alphaMoisture < 30 ? "text-rose-400" : "text-emerald-400"}`}>
                               {alphaMoisture}% {alphaMoisture < 30 && "(Critical)"}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Variety:</span>
-                            <span className="font-semibold text-zinc-300">Golden Sweet</span>
+                            <span>Mandi Value:</span>
+                            <span className="font-semibold text-zinc-300">₹210.00 / kg</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Field Beta Card */}
+                      {/* Field Beta */}
                       <div
                         onClick={() => setSelectedField(selectedField === "beta" ? null : "beta")}
                         className={`border rounded-2xl p-5 flex flex-col justify-between transition-all cursor-pointer ${
@@ -667,20 +697,20 @@ export default function Dashboard() {
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="text-[10px] text-purple-400 font-bold tracking-wider uppercase">Field Beta (Wheat)</span>
-                            <h4 className="text-lg font-bold text-zinc-200 mt-1">Area B-4 Field</h4>
+                            <span className="text-[10px] text-purple-400 font-bold tracking-wider uppercase">Field B4 (Karimnagar)</span>
+                            <h4 className="text-lg font-bold text-zinc-200 mt-1">Rice (వరి - Vari)</h4>
                           </div>
-                          <span className={`h-2.5 w-2.5 rounded-full ${nitrogenLevel < 15 ? "bg-amber-500 animate-pulse" : "bg-emerald-500"}`}></span>
+                          <span className={`h-2.5 w-2.5 rounded-full ${nitrogenLevel < 10 ? "bg-rose-500 animate-pulse" : "bg-emerald-500"}`}></span>
                         </div>
                         <div className="text-xs space-y-1 text-zinc-400">
                           <div className="flex justify-between">
-                            <span>Soil Moisture:</span>
+                            <span>Moisture level:</span>
                             <span className="font-bold text-emerald-400">{betaMoisture}%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Nitrogen Level:</span>
-                            <span className={`font-bold ${nitrogenLevel < 15 ? "text-amber-400" : "text-zinc-300"}`}>
-                              {nitrogenLevel} mg/kg {nitrogenLevel < 15 && "(Low)"}
+                            <span>Nitrogen level:</span>
+                            <span className={`font-bold ${nitrogenLevel < 10 ? "text-rose-400" : "text-zinc-300"}`}>
+                              {nitrogenLevel} mg/kg {nitrogenLevel < 10 && "(Deficient)"}
                             </span>
                           </div>
                         </div>
@@ -690,8 +720,8 @@ export default function Dashboard() {
 
                   <div className="mt-6 pt-4 border-t border-zinc-800/40 flex justify-between items-center text-xs text-zinc-500">
                     <span>
-                      {selectedField === "alpha" && "Selected: Field Alpha - Sweet Corn growth stage: VEGETATIVE"}
-                      {selectedField === "beta" && "Selected: Field Beta - Wheat growth stage: FLOWERING"}
+                      {selectedField === "alpha" && "Selected: Field Alpha - Chilli (మిరపకాయ) in Guntur (Black Cotton Soil) coordinates."}
+                      {selectedField === "beta" && "Selected: Field Beta - Rice (వరి) in Karimnagar alluvial soil belt."}
                       {!selectedField && "Click a field card to view vegetative status indicators"}
                     </span>
                     <button
@@ -711,9 +741,9 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-sm font-semibold text-zinc-200">Agentic Action Center</h3>
-                      <p className="text-xs text-zinc-500 font-medium">Collaboration stream (LangGraph)</p>
+                      <p className="text-xs text-zinc-500 font-medium">Real-time decisions logs (LangGraph)</p>
                     </div>
-                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></div>
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping animate-duration-1000"></div>
                   </div>
 
                   {/* Log list */}
@@ -745,23 +775,22 @@ export default function Dashboard() {
           {/* TAB 2: AI AGENTS */}
           {activeTab === "agents" && (
             <div className="space-y-8">
-              {/* Config card */}
               <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
                 <h3 className="text-lg font-bold text-zinc-200 mb-2">🤖 Agentic AI Network Configuration</h3>
                 <p className="text-sm text-zinc-500">
-                  Click on any agent card below to select them, then ask questions directly in the live Agent Chat room below!
+                  Select an agent card below, and ask questions directly in the live Agent Chat room below!
                 </p>
               </div>
 
               {/* Agent Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                  { name: "Weather Agent", role: "Microclimate Analysis", status: "Active", desc: "Monitors forecasting systems. Switches agricultural directives based on rain warnings.", icon: "☀️" },
-                  { name: "Irrigation Agent", role: "Water Optimization", status: "Active", desc: "Reads live moisture sensors. Directs sprinkles depending on radar updates.", icon: "💧" },
-                  { name: "Fertilizer Agent", role: "Nutrient Planner", status: "Active", desc: "Evaluates Nitrogen, Phosphorus, Potassium logs. Suggests targeted fertilizers.", icon: "🌱" },
-                  { name: "Disease Vision Agent", role: "CV Spot Classification", status: "Idle", desc: "Scans uploaded photos of crop leaves. Detects spots, blight, and fungal diseases.", icon: "👁️" },
-                  { name: "Inventory Agent", role: "Resource Logistics", status: "Active", desc: "Tracks warehouse stock. Triggers replenishment requests when levels dip.", icon: "📦" },
-                  { name: "Market Agent", role: "Price Index Analytics", status: "Active", desc: "Monitors mandi wholesale rates. Forecasts profit outcomes to suggest harvest times.", icon: "📈" },
+                  { name: "Weather Agent", role: "IMD Forecasts Node", status: "Active", desc: "Monitors regional forecasts and rainfall logs. Suggests targeted scheduling changes.", icon: "☀️" },
+                  { name: "Irrigation Agent", role: "Virtual Drip Node", status: "Active", desc: "Reads virtual soil moisture data. Calculates sprinkler timings.", icon: "💧" },
+                  { name: "Fertilizer Agent", role: "Soil Nutrition Node", status: "Active", desc: "Monitors nitrogen (N), phosphorus (P), and potassium (K) configurations.", icon: "🌱" },
+                  { name: "Disease Vision Agent", role: "Leaf Spot Classification", status: "Idle", desc: "Analyzes uploaded crop pictures to categorize rust, blight, and fungal diseases.", icon: "👁️" },
+                  { name: "Inventory Agent", role: "Seed & Fertilizers Tracker", status: "Active", desc: "Tracks material volumes. Requests replenishments automatically.", icon: "📦" },
+                  { name: "Market Agent", role: "Mandi rate scraper", status: "Active", desc: "Monitors wholesale Mandi prices in Guntur and Hyderabad.", icon: "📈" },
                 ].map((agent, i) => (
                   <div
                     key={i}
@@ -787,12 +816,12 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {/* Live Agent Chat Room */}
+              {/* Chat room */}
               <div className="border border-zinc-850 bg-[#090910]/80 rounded-3xl p-6 space-y-4">
                 <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
                   <div>
                     <h3 className="text-sm font-bold text-zinc-200">🗣️ Live Agent Chat Console</h3>
-                    <p className="text-xs text-zinc-500">Querying: <span className="text-emerald-400 font-bold">{selectedChatAgent}</span></p>
+                    <p className="text-xs text-zinc-500">Active Query Target: <span className="text-emerald-400 font-bold">{selectedChatAgent}</span></p>
                   </div>
                   <select
                     value={selectedChatAgent}
@@ -826,7 +855,7 @@ export default function Dashboard() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      <span>Agent is formulating plan...</span>
+                      <span>Formulating plans...</span>
                     </div>
                   )}
                 </div>
@@ -838,7 +867,7 @@ export default function Dashboard() {
                     required
                     value={chatMessage}
                     onChange={(e) => setChatMessage(e.target.value)}
-                    placeholder={`Ask ${selectedChatAgent} something (e.g. "What is the forecast?" or "Is nitrogen levels low?")`}
+                    placeholder={`Ask ${selectedChatAgent} something (e.g. "What is the forecast?" or "Is nitrogen level low?")`}
                     className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-650 focus:border-emerald-500 focus:outline-none"
                   />
                   <button
@@ -879,7 +908,7 @@ export default function Dashboard() {
                         >
                           <span className="font-bold">{f.name}</span>
                           <span className="text-[9px] uppercase tracking-wider bg-zinc-850 px-2 py-0.5 rounded text-zinc-300 border border-zinc-800">
-                            {f.soilType} | {f.totalAreaHectares.toFixed(1)} {f.areaUnit || "acres"}
+                            {f.totalAreaHectares.toFixed(1)} {f.areaUnit || "acres"}
                           </span>
                         </button>
                       ))}
@@ -903,25 +932,29 @@ export default function Dashboard() {
                         value={newFarmName}
                         onChange={(e) => setNewFarmName(e.target.value)}
                         className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
-                        placeholder="Green Valley Farms"
+                        placeholder="e.g. My Guntur Farm"
                       />
                     </div>
+                    
+                    {/* Location Selectable */}
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">SELECT REGIONAL LOCATION</label>
+                      <select
+                        value={locationIndex}
+                        onChange={(e) => setLocationIndex(parseInt(e.target.value))}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none cursor-pointer"
+                      >
+                        {REALISTIC_LOCATIONS.map((loc, i) => (
+                          <option key={i} value={i}>
+                            {loc.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">SOIL TYPE</label>
-                        <select
-                          value={newFarmSoil}
-                          onChange={(e) => setNewFarmSoil(e.target.value)}
-                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none cursor-pointer"
-                        >
-                          <option value="Clay">Clay</option>
-                          <option value="Sandy">Sandy</option>
-                          <option value="Silty">Silty</option>
-                          <option value="Loamy">Loamy</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">FARM UNIT</label>
+                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">AREA UNIT</label>
                         <select
                           value={areaUnit}
                           onChange={(e) => setAreaUnit(e.target.value)}
@@ -931,20 +964,26 @@ export default function Dashboard() {
                           <option value="hectares">Hectares (ha)</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">TOTAL AREA</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          required
+                          value={newFarmArea}
+                          onChange={(e) => setNewFarmArea(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">
-                        TOTAL AREA (in {areaUnit === "acres" ? "Acres" : "Hectares"})
-                      </label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        required
-                        value={newFarmArea}
-                        onChange={(e) => setNewFarmArea(e.target.value)}
-                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
-                      />
+                    
+                    {/* Auto-populated metrics warning */}
+                    <div className="text-[10px] text-zinc-500 leading-relaxed bg-[#0c0c12] border border-zinc-850 p-3.5 rounded-xl">
+                      <span>Coordinates: Lat {REALISTIC_LOCATIONS[locationIndex].latitude.toFixed(4)}, Long {REALISTIC_LOCATIONS[locationIndex].longitude.toFixed(4)}</span>
+                      <br/>
+                      <span>Soil profile: {REALISTIC_LOCATIONS[locationIndex].defaultSoil} | Temp: {REALISTIC_LOCATIONS[locationIndex].tempRange}</span>
                     </div>
+
                     <button
                       type="submit"
                       className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] cursor-pointer"
@@ -963,7 +1002,7 @@ export default function Dashboard() {
                     <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
                       <div>
                         <h3 className="text-sm font-bold text-zinc-200">Active Crops - {selectedFarm.name}</h3>
-                        <p className="text-[11px] text-zinc-500 mb-6">Farms registered unit: {selectedFarm.areaUnit || "acres"}</p>
+                        <p className="text-[11px] text-zinc-500 mb-6">Location: {selectedFarm.locationName}</p>
                       </div>
 
                       {loadingCrops ? (
@@ -977,7 +1016,7 @@ export default function Dashboard() {
                           <table className="w-full text-left text-xs">
                             <thead>
                               <tr className="text-[10px] uppercase font-bold text-zinc-500 border-b border-zinc-850">
-                                <th className="pb-3">Crop Type</th>
+                                <th className="pb-3">Crop Name (English / Telugu)</th>
                                 <th className="pb-3">Variety</th>
                                 <th className="pb-3">Planted At</th>
                                 <th className="pb-3">Est. Harvest</th>
@@ -1004,7 +1043,7 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    {/* Plant crop form */}
+                    {/* Plant crop form with Telugu names */}
                     <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
                       <h3 className="text-sm font-bold text-zinc-200 mb-4">Plant & Log New Crop inside {selectedFarm.name}</h3>
                       
@@ -1013,26 +1052,36 @@ export default function Dashboard() {
                       
                       <form onSubmit={handleCreateCrop} className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[10px] text-zinc-500 font-bold mb-1">CROP NAME</label>
-                          <input
-                            type="text"
-                            required
-                            value={newCropName}
-                            onChange={(e) => setNewCropName(e.target.value)}
-                            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
-                            placeholder="e.g. Wheat, Tomato"
-                          />
+                          <label className="block text-[10px] text-zinc-500 font-bold mb-1">CROP TYPE (TELUGU)</label>
+                          <select
+                            value={newCropIndex}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              setNewCropIndex(val);
+                              setNewCropVariety(AVAILABLE_CROPS[val].varieties[0]);
+                            }}
+                            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none cursor-pointer"
+                          >
+                            {AVAILABLE_CROPS.map((crop, idx) => (
+                              <option key={idx} value={idx}>
+                                {crop.label}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-[10px] text-zinc-500 font-bold mb-1">VARIETY</label>
-                          <input
-                            type="text"
-                            required
+                          <select
                             value={newCropVariety}
                             onChange={(e) => setNewCropVariety(e.target.value)}
-                            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
-                            placeholder="e.g. Sharbati, Desi"
-                          />
+                            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none cursor-pointer"
+                          >
+                            {AVAILABLE_CROPS[newCropIndex].varieties.map((v, i) => (
+                              <option key={i} value={v}>
+                                {v}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-[10px] text-zinc-500 font-bold mb-1">PLANTED DATE</label>
@@ -1076,23 +1125,32 @@ export default function Dashboard() {
           {/* TAB 4: SENSOR FEEDS */}
           {activeTab === "telemetry" && (
             <div className="space-y-6">
+              
+              {/* Virtual Telemetry Node Banner to address hardware clarification */}
+              <div className="border border-emerald-800/40 rounded-2xl bg-emerald-950/20 p-4 border-l-4 border-l-emerald-500 text-xs text-emerald-300 leading-normal flex items-start gap-3">
+                <span className="text-lg">🛠️</span>
+                <div>
+                  <span className="font-bold">Virtual Telemetry Engine Active:</span> Since this software prototype functions without physical IoT hardware probes, soil telemetry signals are generated using simulated microclimate algorithms mapping regional soil profiles.
+                </div>
+              </div>
+
               {/* Header info */}
               <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6 flex justify-between items-center">
                 <div>
-                  <h3 className="text-lg font-bold text-zinc-200 mb-2">📡 Real-Time Telemetry Node Logs</h3>
+                  <h3 className="text-lg font-bold text-zinc-200 mb-2">📡 Live Sensor Feeds (Simulated)</h3>
                   <p className="text-sm text-zinc-500">
-                    Live soil compositions, water content, and temperature logs linked to active field sensors.
+                    Active measurements synced with location profiles. Click buttons inside cards to test warnings triggers.
                   </p>
                 </div>
                 <button
                   onClick={() => {
                     setAlphaMoisture(38);
                     setBetaMoisture(41);
-                    setNitrogenLevel(18);
+                    setNitrogenLevel(14);
                   }}
                   className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold transition-colors cursor-pointer"
                 >
-                  Reset Sensors
+                  Reset Telemetry
                 </button>
               </div>
 
@@ -1104,7 +1162,7 @@ export default function Dashboard() {
                   selectedField === "alpha" ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-950/5" : "border-zinc-850 bg-[#0c0c12]/40"
                 }`}>
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Field Alpha (Sweet Corn)</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Field 1 (Amaravati Chilli)</h4>
                     <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
                   </div>
                   <div className="space-y-3.5 text-xs font-mono">
@@ -1114,7 +1172,7 @@ export default function Dashboard() {
                         {alphaMoisture}% {alphaMoisture < 30 && "(Critical)"}
                       </span>
                     </div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Temperature:</span> <span className="font-semibold text-zinc-300">22.4°C</span></div>
+                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Temperature:</span> <span className="font-semibold text-zinc-300">32.4°C</span></div>
                     <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Nitrogen (N):</span> <span className="font-semibold text-zinc-300">32 mg/kg</span></div>
                     <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Phosphorus (P):</span> <span className="font-semibold text-zinc-300">18 mg/kg</span></div>
                     <div className="flex justify-between"><span className="text-zinc-500">Potassium (K):</span> <span className="font-semibold text-zinc-300">45 mg/kg</span></div>
@@ -1132,7 +1190,7 @@ export default function Dashboard() {
                   selectedField === "beta" ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-950/5" : "border-zinc-850 bg-[#0c0c12]/40"
                 }`}>
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400">Field Beta (Wheat)</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400">Field 2 (Karimnagar Rice)</h4>
                     <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
                   </div>
                   <div className="space-y-3.5 text-xs font-mono">
@@ -1140,11 +1198,11 @@ export default function Dashboard() {
                       <span className="text-zinc-500">Moisture:</span>
                       <span className="font-bold text-emerald-400">{betaMoisture}%</span>
                     </div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Temperature:</span> <span className="font-semibold text-zinc-300">21.8°C</span></div>
+                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Temperature:</span> <span className="font-semibold text-zinc-300">30.8°C</span></div>
                     <div className="flex justify-between border-b border-zinc-900 pb-2">
                       <span className="text-zinc-500">Nitrogen (N):</span>
-                      <span className={`font-bold ${nitrogenLevel < 15 ? "text-rose-400" : "text-zinc-300"}`}>
-                        {nitrogenLevel} mg/kg {nitrogenLevel < 15 && "(Low)"}
+                      <span className={`font-bold ${nitrogenLevel < 10 ? "text-rose-400" : "text-zinc-300"}`}>
+                        {nitrogenLevel} mg/kg {nitrogenLevel < 10 && "(Low)"}
                       </span>
                     </div>
                     <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Phosphorus (P):</span> <span className="font-semibold text-zinc-300">24 mg/kg</span></div>
@@ -1158,19 +1216,19 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {/* Informational guide */}
+                {/* Info Guide */}
                 <div className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-zinc-300 mb-3">📡 Interactive Telemetry Simulators</h4>
+                    <h4 className="text-xs font-bold text-zinc-300 mb-3">📡 Simulation Details</h4>
                     <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-                      Click the simulated warning buttons inside the cards to mock telemetry defects. 
+                      Telemetry values are modeled on realistic Indian regional soils (such as Guntur black soil and red chalky soils of Telangana). 
                     </p>
                     <p className="text-xs text-zinc-500 leading-relaxed">
-                      Defects automatically notify the AI agent orchestrators (LangGraph) and inject resolution plans directly into the **Dashboard Agentic Action Center**!
+                      Defects alert the FastAPI AI engine which returns detailed recovery advice.
                     </p>
                   </div>
                   <div className="text-[11px] text-zinc-600 bg-zinc-950/40 border border-zinc-900 rounded-xl p-3">
-                    Tip: Verify your H2 core service status logs in the sidebar box.
+                    Active Coordinates: Guntur region (AP)
                   </div>
                 </div>
               </div>
@@ -1182,43 +1240,43 @@ export default function Dashboard() {
             <div className="space-y-6">
               {/* Header */}
               <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
-                <h3 className="text-lg font-bold text-zinc-200 mb-2">📈 AgriMarket Mandi Price Indices (Rupees ₹)</h3>
+                <h3 className="text-lg font-bold text-zinc-200 mb-2">📈 Mandi Rates Index (Rupees ₹)</h3>
                 <p className="text-sm text-zinc-500">
-                  Real-time sentiment and pricing analytics converted to Indian Rupees (₹) for localized crop sales decisions.
+                  Wholesale price indices scraped directly matching rates in Guntur, Hyderabad, and Warangal mandis.
                 </p>
               </div>
 
               {/* Indian Mandi Price Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Tomatoes */}
+                {/* Chilli */}
                 <div className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Tomatoes (Roma Mandi Rate)</span>
-                    <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/30">+12.4% Spurt</span>
+                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Chilli (Guntur Teja Mandi Rate)</span>
+                    <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/30">+14.2% Spurt</span>
                   </div>
-                  <h4 className="text-4xl font-extrabold text-zinc-100">₹120.00 <span className="text-xs font-normal text-zinc-500">/ kg</span></h4>
+                  <h4 className="text-4xl font-extrabold text-zinc-100">₹210.00 <span className="text-xs font-normal text-zinc-500">/ kg</span></h4>
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    Supply constraints in surrounding crop belts have triggered Mandi prices to escalate. The Market Agent advises harvesting and releasing tomato stocks now to capture peak margins.
+                    Heavy export demands has spiked wholesale bids. The Market Agent advises harvesting and processing Guntur Teja Chilli yields to secure peak margins.
                   </p>
                   <div className="pt-2 flex justify-between items-center text-[10px] text-zinc-500 border-t border-zinc-850">
-                    <span>Average Cost: ₹85.00 / kg</span>
+                    <span>Average Cost: ₹185.00 / kg</span>
                     <span>Sentiment: **BULLISH**</span>
                   </div>
                 </div>
 
-                {/* Corn */}
+                {/* Paddy / Rice */}
                 <div className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-zinc-800 transition-colors">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Sweet Corn (Corn Mandi Rate)</span>
+                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Rice (Samba Masuri Mandi Rate)</span>
                     <span className="text-xs font-bold text-rose-400 bg-rose-950 px-2 py-0.5 rounded border border-rose-800/30">-1.8% Slide</span>
                   </div>
                   <h4 className="text-4xl font-extrabold text-zinc-100">₹45.00 <span className="text-xs font-normal text-zinc-500">/ kg</span></h4>
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    Sweet Corn supplies are healthy across key mandis. Mandi rates are consolidating. Market Agent suggests holding inventory or using warehouse stock feeds to avoid immediate sell-offs.
+                    Samba Masuri supplies are steady in Warangal mandis. Pricing is expected to consolidate. The Market Agent suggests storing inventory in warehouses to avoid low margins.
                   </p>
                   <div className="pt-2 flex justify-between items-center text-[10px] text-zinc-500 border-t border-zinc-850">
                     <span>Average Cost: ₹48.00 / kg</span>
-                    <span>Sentiment: **BEARISH**</span>
+                    <span>Sentiment: **STABLE**</span>
                   </div>
                 </div>
               </div>
