@@ -82,12 +82,12 @@ const REALISTIC_LOCATIONS = [
 
 // Available crops in English with Telugu translation in brackets
 const AVAILABLE_CROPS = [
-  { value: "Rice", label: "Rice (వరి - Vari)", varieties: ["BPT 5204 (Samba Masuri)", "Nellore Sannalu", "MTU 1010"], baseCostPerAcre: 18000, yieldPerAcreQuintals: 22, marketPricePerQuintal: 2180 },
-  { value: "Cotton", label: "Cotton (ప్రత్తి - Pratti)", varieties: ["Kaveri Jadoo", "Ajit 155", "BG II Hybrid"], baseCostPerAcre: 22000, yieldPerAcreQuintals: 10, marketPricePerQuintal: 7000 },
-  { value: "Chilli", label: "Chilli (మిరపకాయ - Mirapakaya)", varieties: ["Guntur Sannam S4", "Teja Chilli", "Byadagi"], baseCostPerAcre: 35000, yieldPerAcreQuintals: 15, marketPricePerQuintal: 19500 },
-  { value: "Groundnut", label: "Groundnut (వేరుశనగ - Verusenaga)", varieties: ["Kadiri 9", "K 6", "TAG 24"], baseCostPerAcre: 15000, yieldPerAcreQuintals: 8, marketPricePerQuintal: 6300 },
-  { value: "Maize", label: "Maize (మొక్కజొన్న - Mokkajonna)", varieties: ["Pioneer 3396", "DHM 117", "Dekalb 9108"], baseCostPerAcre: 12000, yieldPerAcreQuintals: 25, marketPricePerQuintal: 1960 },
-  { value: "Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"], baseCostPerAcre: 25000, yieldPerAcreQuintals: 120, marketPricePerQuintal: 1200 }
+  { value: "Rice", label: "Rice (వరి - Vari)", varieties: ["BPT 5204 (Samba Masuri)", "Nellore Sannalu", "MTU 1010"], baseCostPerAcre: 18000, yieldPerAcreQuintals: 22, marketPricePerQuintal: 2180, durationDays: 120 },
+  { value: "Cotton", label: "Cotton (ప్రత్తి - Pratti)", varieties: ["Kaveri Jadoo", "Ajit 155", "BG II Hybrid"], baseCostPerAcre: 22000, yieldPerAcreQuintals: 10, marketPricePerQuintal: 7000, durationDays: 150 },
+  { value: "Chilli", label: "Chilli (మిరపకాయ - Mirapakaya)", varieties: ["Guntur Sannam S4", "Teja Chilli", "Byadagi"], baseCostPerAcre: 35000, yieldPerAcreQuintals: 15, marketPricePerQuintal: 19500, durationDays: 150 },
+  { value: "Groundnut", label: "Groundnut (వేరుశనగ - Verusenaga)", varieties: ["Kadiri 9", "K 6", "TAG 24"], baseCostPerAcre: 15000, yieldPerAcreQuintals: 8, marketPricePerQuintal: 6300, durationDays: 105 },
+  { value: "Maize", label: "Maize (మొక్కజొన్న - Mokkajonna)", varieties: ["Pioneer 3396", "DHM 117", "Dekalb 9108"], baseCostPerAcre: 12000, yieldPerAcreQuintals: 25, marketPricePerQuintal: 1960, durationDays: 100 },
+  { value: "Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"], baseCostPerAcre: 25000, yieldPerAcreQuintals: 120, marketPricePerQuintal: 1200, durationDays: 90 }
 ];
 
 export default function Dashboard() {
@@ -131,6 +131,16 @@ export default function Dashboard() {
   const [newCropHarvest, setNewCropHarvest] = useState("");
   const [cropError, setCropError] = useState("");
   const [cropSuccess, setCropSuccess] = useState("");
+
+  // Auto-calculate crop harvest date based on planted date & duration
+  useEffect(() => {
+    const targetCrop = AVAILABLE_CROPS[newCropIndex];
+    if (newCropPlanted && targetCrop) {
+      const date = new Date(newCropPlanted);
+      date.setDate(date.getDate() + targetCrop.durationDays);
+      setNewCropHarvest(date.toISOString().split("T")[0]);
+    }
+  }, [newCropIndex, newCropPlanted]);
 
   // Change Password state
   const [newPassword, setNewPassword] = useState("");
@@ -1304,12 +1314,12 @@ export default function Dashboard() {
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-zinc-500 font-bold mb-1">ESTIMATED HARVEST</label>
+                            <label className="block text-[10px] text-zinc-550 font-bold mb-1">ESTIMATED HARVEST (AUTO-CALCULATED)</label>
                             <input
                               type="date"
+                              readOnly
                               value={newCropHarvest}
-                              onChange={(e) => setNewCropHarvest(e.target.value)}
-                              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
+                              className="w-full rounded-xl border border-zinc-850 bg-zinc-900/50 px-3.5 py-2.5 text-xs text-zinc-500 focus:outline-none cursor-not-allowed"
                             />
                           </div>
                           <div className="col-span-2 pt-2">
