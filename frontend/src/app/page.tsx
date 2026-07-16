@@ -90,6 +90,42 @@ const AVAILABLE_CROPS = [
   { value: "Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"], baseCostPerAcre: 25000, yieldPerAcreQuintals: 120, marketPricePerQuintal: 1200, durationDays: 90 }
 ];
 
+const LEAF_DISEASE_DATA: Record<string, { diseaseName: string; localName: string; medicine: string; dosage: string; tips: string[] }> = {
+  tomato: {
+    diseaseName: "Early Blight (Alternaria solani)",
+    localName: "టమోటా ఆకు మాడు తెగులు (Tomato Aaku Maadu Tegulu)",
+    medicine: "Copper Oxychloride (50% WP) or Mancozeb fungicide.",
+    dosage: "Mix 2.5g of Copper Oxychloride per 1 Litre of clean water. Spray thoroughly over foliage.",
+    tips: [
+      "Keep foliage dry: Use drip irrigation at soil level instead of overhead sprinklers.",
+      "Prune lower leaves: Remove leaves touching the soil to prevent soil-to-foliar transmission.",
+      "Maintain spacing: Allow ample crop spacing to ensure ventilation."
+    ]
+  },
+  rice: {
+    diseaseName: "Paddy Blast (Magnaporthe oryzae)",
+    localName: "వరి ఆకు అగ్గి తెగులు (Vari Aaku Aggi Tegulu)",
+    medicine: "Tricyclazole (75% WP) or Isoprothiolane.",
+    dosage: "Mix 0.6g of Tricyclazole per 1 Litre of water. Apply at first sign of spindle-shaped spots.",
+    tips: [
+      "Avoid excessive Nitrogen: High nitrogen urea increases crop susceptibility to blast.",
+      "Field sanitation: Clear weed hosts and stubbles from previous season to reduce spores.",
+      "Use resistant varieties: Plant certified seeds from local agricultural extension."
+    ]
+  },
+  cotton: {
+    diseaseName: "Alternaria Leaf Spot",
+    localName: "ప్రత్తి ఆకు మచ్చ తెగులు (Pratti Aaku Maccha Tegulu)",
+    medicine: "Propiconazole (25% EC) or Copper Hydroxide.",
+    dosage: "Mix 1.0ml of Propiconazole per 1 Litre of water. Spray at 10-day intervals.",
+    tips: [
+      "Deep plowing: Bury infected plant debris deep into soil after harvest.",
+      "Remove volunteer plants: Pull out wild cotton varieties that act as spore reservoirs.",
+      "Irrigate early: Apply water early morning so leaves dry quickly in daylight."
+    ]
+  }
+};
+
 export default function Dashboard() {
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
@@ -173,6 +209,11 @@ export default function Dashboard() {
 
   // Seasonal and Date based parameters
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+
+  // Leaf Disease Detection States
+  const [selectedLeafSample, setSelectedLeafSample] = useState<string | null>(null);
+  const [scanningLeaf, setScanningLeaf] = useState(false);
+  const [scanResult, setScanResult] = useState<{ diseaseName: string; localName: string; medicine: string; dosage: string; tips: string[] } | null>(null);
 
   // GPS Current Location Detection (Calibrated for Hyderabad priority)
   const handleGPSDetection = () => {
@@ -617,6 +658,40 @@ export default function Dashboard() {
       setChatResponses((prev) => [...prev, { sender: selectedChatAgent, text: replyText }]);
       setSendingQuery(false);
     }, 1000);
+  };
+
+  const handleDetectLeafDisease = (sampleKey: string) => {
+    setSelectedLeafSample(sampleKey);
+    setScanningLeaf(true);
+    setScanResult(null);
+
+    const timestamp = new Date().toTimeString().split(" ")[0];
+    setAgentLogs((prev) => [
+      ...prev,
+      {
+        time: timestamp,
+        agent: "Disease Vision Agent",
+        message: `Foliar leaf scan initiated for: ${sampleKey.toUpperCase()} sample. Parsing RGB color matrices...`,
+        type: "weather"
+      }
+    ]);
+
+    setTimeout(() => {
+      const data = LEAF_DISEASE_DATA[sampleKey];
+      setScanResult(data);
+      setScanningLeaf(false);
+
+      const doneTimestamp = new Date().toTimeString().split(" ")[0];
+      setAgentLogs((prev) => [
+        ...prev,
+        {
+          time: doneTimestamp,
+          agent: "Disease Vision Agent",
+          message: `Scan complete: ${data.diseaseName} detected with 94.2% confidence. Treatment prescription generated.`,
+          type: "disease"
+        }
+      ]);
+    }, 1500);
   };
 
   // Change Password Logic
@@ -1176,6 +1251,134 @@ export default function Dashboard() {
                     Ask Agent
                   </button>
                 </form>
+              </div>
+
+              {/* Computer Vision Leaf Disease Classifier Section */}
+              <div className="border border-zinc-800 bg-[#0c0c12]/40 rounded-3xl p-8 space-y-6">
+                <div>
+                  <h3 className="text-md font-bold text-zinc-200">🍂 Computer Vision Leaf Disease Diagnostics (Foliar Scan)</h3>
+                  <p className="text-xs text-zinc-550">Click on any leaf photo sample below to simulate neural network image classification, check treatments, dosage, and preventive guidelines.</p>
+                </div>
+
+                {/* Leaf Grid Samples */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {/* Tomato leaf */}
+                  <div
+                    onClick={() => handleDetectLeafDisease("tomato")}
+                    className={`border rounded-2xl p-4 transition-all cursor-pointer text-center space-y-3 ${
+                      selectedLeafSample === "tomato"
+                        ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 ring-2 ring-emerald-500/20"
+                        : "border-zinc-850 bg-zinc-950/45 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-850 flex items-center justify-center text-4xl">
+                      🍂
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-zinc-200 block">Tomato Leaf (Early Blight)</span>
+                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">Alternaria solani</span>
+                    </div>
+                  </div>
+
+                  {/* Rice leaf */}
+                  <div
+                    onClick={() => handleDetectLeafDisease("rice")}
+                    className={`border rounded-2xl p-4 transition-all cursor-pointer text-center space-y-3 ${
+                      selectedLeafSample === "rice"
+                        ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 ring-2 ring-emerald-500/20"
+                        : "border-zinc-850 bg-zinc-950/45 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-850 flex items-center justify-center text-4xl">
+                      🌾
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-zinc-200 block">Rice Leaf (Blast)</span>
+                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">Magnaporthe oryzae</span>
+                    </div>
+                  </div>
+
+                  {/* Cotton leaf */}
+                  <div
+                    onClick={() => handleDetectLeafDisease("cotton")}
+                    className={`border rounded-2xl p-4 transition-all cursor-pointer text-center space-y-3 ${
+                      selectedLeafSample === "cotton"
+                        ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 ring-2 ring-emerald-500/20"
+                        : "border-zinc-850 bg-zinc-950/45 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-855 flex items-center justify-center text-4xl">
+                      🌿
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-zinc-200 block">Cotton Leaf (Spot)</span>
+                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">Alternaria Leaf Spot</span>
+                    </div>
+                  </div>
+
+                  {/* Upload box */}
+                  <div
+                    onClick={() => alert("Image upload triggered. Under staging configurations, select one of the mock sample leaf nodes to run visual classifier diagnostics.")}
+                    className="border border-dashed border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-2 hover:border-emerald-500/50 transition-colors cursor-pointer bg-zinc-950/20"
+                  >
+                    <div className="text-3xl text-zinc-650">📤</div>
+                    <div>
+                      <span className="font-semibold text-xs text-zinc-400 block">Upload Custom Leaf</span>
+                      <span className="text-[9px] text-zinc-600 block mt-1">Supports JPG, PNG (Max 5MB)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Diagnostics Scanner Console */}
+                {scanningLeaf && (
+                  <div className="border border-zinc-850 bg-zinc-950/60 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 text-xs">
+                    <svg className="animate-spin h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span className="text-zinc-400 animate-pulse">Running Vision AI neural networks image scan classification model...</span>
+                  </div>
+                )}
+
+                {/* Results Diagnostic Card */}
+                {scanResult && !scanningLeaf && (
+                  <div className="border border-zinc-850 bg-zinc-950/60 p-6 rounded-2xl space-y-5">
+                    <div className="flex justify-between items-start border-b border-zinc-850 pb-4">
+                      <div>
+                        <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Diagnostics Result (Vision AI)</span>
+                        <h4 className="text-lg font-bold text-zinc-200 mt-1">{scanResult.diseaseName}</h4>
+                        <span className="text-xs text-zinc-500 font-medium">{scanResult.localName}</span>
+                      </div>
+                      <span className="text-xs font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-800/40 px-2.5 py-1 rounded-xl">
+                        Confidence: 94.2%
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                      {/* Medicine & Dosage */}
+                      <div className="space-y-3">
+                        <div>
+                          <span className="font-bold text-zinc-450 block mb-1">🧪 Recommended Medicine / Fungicide</span>
+                          <span className="text-emerald-400 font-semibold">{scanResult.medicine}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-zinc-450 block mb-1">📋 Dosage & Application Instructions</span>
+                          <p className="text-zinc-350 leading-relaxed font-sans">{scanResult.dosage}</p>
+                        </div>
+                      </div>
+
+                      {/* Preventive Tips Session */}
+                      <div className="border-l border-zinc-850/80 pl-6 space-y-3">
+                        <span className="font-bold text-zinc-450 block">💡 Preventive Tips & Best Practices</span>
+                        <ul className="space-y-2 list-disc list-inside text-zinc-450 leading-normal">
+                          {scanResult.tips.map((tip, i) => (
+                            <li key={i}>{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
