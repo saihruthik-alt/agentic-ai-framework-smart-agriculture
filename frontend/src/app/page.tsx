@@ -80,14 +80,14 @@ const REALISTIC_LOCATIONS = [
   { name: "Khammam (Cotton & Chilli Belt)", latitude: 17.2473, longitude: 80.1514, defaultSoil: "Clay Loam", tempRange: "30°C - 40°C", avgRainfall: "1050mm", moistureDefault: 36 }
 ];
 
-// Available crops in English with Telugu translation in brackets
+// Available crops with multilingual options
 const AVAILABLE_CROPS = [
-  { value: "Rice", label: "Rice (వరి - Vari)", varieties: ["BPT 5204 (Samba Masuri)", "Nellore Sannalu", "MTU 1010"], baseCostPerAcre: 18000, yieldPerAcreQuintals: 22, marketPricePerQuintal: 2180, durationDays: 120 },
-  { value: "Cotton", label: "Cotton (ప్రత్తి - Pratti)", varieties: ["Kaveri Jadoo", "Ajit 155", "BG II Hybrid"], baseCostPerAcre: 22000, yieldPerAcreQuintals: 10, marketPricePerQuintal: 7000, durationDays: 150 },
-  { value: "Chilli", label: "Chilli (మిరపకాయ - Mirapakaya)", varieties: ["Guntur Sannam S4", "Teja Chilli", "Byadagi"], baseCostPerAcre: 35000, yieldPerAcreQuintals: 15, marketPricePerQuintal: 19500, durationDays: 150 },
-  { value: "Groundnut", label: "Groundnut (వేరుశనగ - Verusenaga)", varieties: ["Kadiri 9", "K 6", "TAG 24"], baseCostPerAcre: 15000, yieldPerAcreQuintals: 8, marketPricePerQuintal: 6300, durationDays: 105 },
-  { value: "Maize", label: "Maize (మొక్కజొన్న - Mokkajonna)", varieties: ["Pioneer 3396", "DHM 117", "Dekalb 9108"], baseCostPerAcre: 12000, yieldPerAcreQuintals: 25, marketPricePerQuintal: 1960, durationDays: 100 },
-  { value: "Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"], baseCostPerAcre: 25000, yieldPerAcreQuintals: 120, marketPricePerQuintal: 1200, durationDays: 90 }
+  { value: "Rice", labelEn: "Rice", labelHi: "धान - Dhaan", labelTe: "వరి - Vari", label: "Rice (వరి - Vari)", varieties: ["BPT 5204 (Samba Masuri)", "Nellore Sannalu", "MTU 1010"], baseCostPerAcre: 18000, yieldPerAcreQuintals: 22, marketPricePerQuintal: 2180, durationDays: 120 },
+  { value: "Cotton", labelEn: "Cotton", labelHi: "कपास - Kapaas", labelTe: "ప్రత్తి - Pratti", label: "Cotton (ప్రత్తి - Pratti)", varieties: ["Kaveri Jadoo", "Ajit 155", "BG II Hybrid"], baseCostPerAcre: 22000, yieldPerAcreQuintals: 10, marketPricePerQuintal: 7000, durationDays: 150 },
+  { value: "Chilli", labelEn: "Chilli", labelHi: "लाल मिर्च - Lal Mirch", labelTe: "మిరపకాయ - Mirapakaya", label: "Chilli (మిరపకాయ - Mirapakaya)", varieties: ["Guntur Sannam S4", "Teja Chilli", "Byadagi"], baseCostPerAcre: 35000, yieldPerAcreQuintals: 15, marketPricePerQuintal: 19500, durationDays: 150 },
+  { value: "Groundnut", labelEn: "Groundnut", labelHi: "मूंगफली - Mungfali", labelTe: "వేరుశనగ - Verusenaga", label: "Groundnut (వేరుశనగ - Verusenaga)", varieties: ["Kadiri 9", "K 6", "TAG 24"], baseCostPerAcre: 15000, yieldPerAcreQuintals: 8, marketPricePerQuintal: 6300, durationDays: 105 },
+  { value: "Maize", labelEn: "Maize", labelHi: "मक्का - Makka", labelTe: "మొక్కజొన్న - Mokkajonna", label: "Maize (మొక్కజొన్న - Mokkajonna)", varieties: ["Pioneer 3396", "DHM 117", "Dekalb 9108"], baseCostPerAcre: 12000, yieldPerAcreQuintals: 25, marketPricePerQuintal: 1960, durationDays: 100 },
+  { value: "Tomato", labelEn: "Tomato", labelHi: "टमाटर - Tamatar", labelTe: "టమోటా - Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"], baseCostPerAcre: 25000, yieldPerAcreQuintals: 120, marketPricePerQuintal: 1200, durationDays: 90 }
 ];
 
 const LEAF_DISEASE_DATA: Record<string, { diseaseName: string; localName: string; medicine: string; dosage: string; tips: string[] }> = {
@@ -177,6 +177,14 @@ export default function Dashboard() {
       setNewCropHarvest(date.toISOString().split("T")[0]);
     }
   }, [newCropIndex, newCropPlanted]);
+
+  // Multilingual translation state & translator helper
+  const [language, setLanguage] = useState<"en" | "hi" | "te">("en");
+  const t = (english: string, hindi: string, telugu: string) => {
+    if (language === "hi") return `${english} (${hindi})`;
+    if (language === "te") return `${english} (${telugu})`;
+    return english;
+  };
 
   // Change Password state
   const [newPassword, setNewPassword] = useState("");
@@ -923,6 +931,20 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Language Selector */}
+            <div className="flex items-center gap-2 border border-zinc-800 bg-[#07070c] rounded-xl px-2.5 py-1 text-xs">
+              <span className="text-zinc-550">Language:</span>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as "en" | "hi" | "te")}
+                className="bg-transparent text-emerald-400 font-bold focus:outline-none cursor-pointer"
+              >
+                <option value="en" className="bg-[#0c0c12] text-zinc-200">English</option>
+                <option value="hi" className="bg-[#0c0c12] text-zinc-200">Hindi (हिंदी)</option>
+                <option value="te" className="bg-[#0c0c12] text-zinc-200">Telugu (తెలుగు)</option>
+              </select>
+            </div>
+
             <div className="flex items-center gap-2 border border-zinc-800 bg-[#0d0d15] rounded-full py-1.5 px-3.5 text-xs">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-zinc-400">Agent Network Operational</span>
@@ -1532,7 +1554,15 @@ export default function Dashboard() {
                               <tbody className="divide-y divide-zinc-850">
                                 {crops.map((c) => (
                                   <tr key={c.id} className="text-zinc-300">
-                                    <td className="py-3.5 font-bold text-zinc-100">{c.name}</td>
+                                    <td className="py-3.5 font-bold text-zinc-100">
+                                      {c.name.includes("Rice") ? t("Rice", "धान - Dhaan", "వరి - Vari") :
+                                       c.name.includes("Cotton") ? t("Cotton", "कपास - Kapaas", "ప్రత్తి - Pratti") :
+                                       c.name.includes("Chilli") ? t("Chilli", "लाल मिर्च - Lal Mirch", "మిరపకాయ - Mirapakaya") :
+                                       c.name.includes("Groundnut") ? t("Groundnut", "मूंगफली - Mungfali", "వేరుశనగ - Verusenaga") :
+                                       c.name.includes("Maize") ? t("Maize", "मक्का - Makka", "మొక్కజొన్న - Mokkajonna") :
+                                       c.name.includes("Tomato") ? t("Tomato", "टमाटर - Tamatar", "టమోటా - Tomato") :
+                                       c.name}
+                                    </td>
                                     <td className="py-3.5">{c.variety}</td>
                                     <td className="py-3.5">{c.plantedAt}</td>
                                     <td className="py-3.5">{c.harvestPlannedAt || "-"}</td>
@@ -1578,7 +1608,7 @@ export default function Dashboard() {
                             >
                               {AVAILABLE_CROPS.map((crop, idx) => (
                                 <option key={idx} value={idx}>
-                                  {crop.label}
+                                  {t(crop.labelEn, crop.labelHi, crop.labelTe)}
                                 </option>
                               ))}
                             </select>
@@ -1656,7 +1686,7 @@ export default function Dashboard() {
                       >
                         {AVAILABLE_CROPS.map((crop, idx) => (
                           <option key={idx} value={idx}>
-                            {crop.label}
+                            {t(crop.labelEn, crop.labelHi, crop.labelTe)}
                           </option>
                         ))}
                       </select>
@@ -1962,7 +1992,7 @@ export default function Dashboard() {
                 {AVAILABLE_CROPS.map((crop, idx) => (
                   <div key={idx} className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{crop.label}</span>
+                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t(crop.labelEn, crop.labelHi, crop.labelTe)}</span>
                       <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/30">
                         ₹{(crop.marketPricePerQuintal / 100).toFixed(2)}/kg equivalent
                       </span>
