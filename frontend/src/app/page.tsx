@@ -324,6 +324,10 @@ export default function Dashboard() {
           "Authorization": `Bearer ${user.token}`
         }
       });
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         const parsed = data.map((f: any) => {
@@ -356,6 +360,10 @@ export default function Dashboard() {
           "Authorization": `Bearer ${user.token}`
         }
       });
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setCrops(data);
@@ -395,6 +403,11 @@ export default function Dashboard() {
           longitude: targetLoc.longitude
         })
       });
+
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
 
       if (res.ok) {
         const data = await res.json();
@@ -438,6 +451,11 @@ export default function Dashboard() {
         })
       });
 
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
+
       if (res.ok) {
         setCropSuccess("Crop record added successfully!");
         setNewCropHarvest("");
@@ -461,6 +479,10 @@ export default function Dashboard() {
           "Authorization": `Bearer ${user.token}`
         }
       });
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
       if (res.ok) {
         localStorage.removeItem(`farm_unit_${farmId}`);
         localStorage.removeItem(`farm_loc_${farmId}`);
@@ -487,6 +509,10 @@ export default function Dashboard() {
           "Authorization": `Bearer ${user.token}`
         }
       });
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
       if (res.ok) {
         fetchCrops(selectedFarm.id);
       } else {
