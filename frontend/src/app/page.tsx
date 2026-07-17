@@ -1076,11 +1076,11 @@ export default function Dashboard() {
                   <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                     💧
                   </div>
-                  <span className="text-xs text-zinc-500 font-medium">Field 1 Soil Moisture</span>
+                  <span className="text-xs text-zinc-550 font-medium">{t("Field 1 Soil Moisture", "फ़ील्ड 1 मिट्टी की नमी", "ఫీల్డ్ 1 మట్టి తేమ")}</span>
                   <h3 className="text-2xl font-bold mt-2 text-emerald-400">{alphaMoisture}%</h3>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
                     <span className={`h-1.5 w-1.5 rounded-full ${alphaMoisture < 30 ? "bg-rose-500 animate-ping" : "bg-emerald-500"}`}></span>
-                    <span>{alphaMoisture < 30 ? "Moisture CRITICAL" : "Moisture Optimal"}</span>
+                    <span>{alphaMoisture < 30 ? t("Moisture CRITICAL", "नमी गंभीर", "తేమ ప్రమాదకర స్థాయి") : t("Moisture Optimal", "नमी इष्टतम", "తేమ సాధారణ స్థాయి")}</span>
                   </div>
                 </div>
 
@@ -1094,11 +1094,11 @@ export default function Dashboard() {
                   <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                     ☀️
                   </div>
-                  <span className="text-xs text-zinc-500 font-medium">Field 2 Soil Moisture</span>
+                  <span className="text-xs text-zinc-550 font-medium">{t("Field 2 Soil Moisture", "फ़ील्ड 2 मिट्टी की नमी", "ఫీల్డ్ 2 మట్టి తేమ")}</span>
                   <h3 className="text-2xl font-bold mt-2 text-sky-400">{betaMoisture}%</h3>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                    <span>Moisture Stable</span>
+                    <span>{t("Moisture Stable", "नमी स्थिर", "తేమ స్థిరంగా ఉంది")}</span>
                   </div>
                 </div>
 
@@ -1112,10 +1112,10 @@ export default function Dashboard() {
                   <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                     ⚠️
                   </div>
-                  <span className="text-xs text-zinc-500 font-medium">Soil Nitrogen Level</span>
+                  <span className="text-xs text-zinc-550 font-medium">{t("Soil Nitrogen Level", "मिट्टी नाइट्रोजन स्तर", "మట్టి నత్రజని శాతం")}</span>
                   <h3 className="text-2xl font-bold mt-2 text-amber-500">{nitrogenLevel} <span className="text-xs font-normal text-zinc-500">mg/kg</span></h3>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-amber-400/80">
-                    <span>{nitrogenLevel < 10 ? "Nitrogen Deficient!" : "Soil Nutrition Optimal"}</span>
+                    <span>{nitrogenLevel < 10 ? t("Nitrogen Deficient!", "नाइट्रोजन की कमी!", "నత్రజని లోపం!") : t("Soil Nutrition Optimal", "मिट्टी का पोषण इष्टतम", "మట్టి పోషకాలు సాధారణ స్థాయి")}</span>
                   </div>
                 </div>
 
@@ -1126,10 +1126,10 @@ export default function Dashboard() {
                   <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                     📈
                   </div>
-                  <span className="text-xs text-zinc-550 font-medium">{targetCrop.value} Mandi Rate</span>
+                  <span className="text-xs text-zinc-550 font-medium">{t(targetCrop.labelEn, targetCrop.labelHi, targetCrop.labelTe)} {t("Mandi Rate", "मंडी दर", "మండి ధర")}</span>
                   <h3 className="text-2xl font-bold mt-2 text-purple-400">₹{marketPrice.toLocaleString()} <span className="text-xs font-normal">/ Qtl</span></h3>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
-                    <span className="text-emerald-400 font-semibold">Active Price Projection</span>
+                    <span className="text-emerald-400 font-semibold">{t("Active Price Projection", "सक्रिय मूल्य प्रक्षेपण", "ధరల అంచనా")}</span>
                   </div>
                 </div>
               </div>
@@ -1141,11 +1141,11 @@ export default function Dashboard() {
                   <div>
                     <div className="flex items-center justify-between mb-6">
                       <div>
-                        <h3 className="text-sm font-semibold text-zinc-200">Interactive Farm Fields Map ({REALISTIC_LOCATIONS[activeLocationIndex].name.split(" ")[0]})</h3>
-                        <p className="text-xs text-zinc-500 font-medium">Click on fields below to inspect crop type and coordinate details</p>
+                        <h3 className="text-sm font-semibold text-zinc-200">{t("Interactive Farm Fields Map", "इंटरैक्टिव फार्म फील्ड मैप", "క్రియాశీల ఫార్మ్ మ్యాప్")} ({REALISTIC_LOCATIONS[activeLocationIndex].name.split(" ")[0]})</h3>
+                        <p className="text-xs text-zinc-500 font-medium">{t("Click on fields below to inspect crop type and coordinate details", "फसल के प्रकार और विवरण का निरीक्षण करने के लिए नीचे फ़ील्ड पर क्लिक करें", "పంట వివరాలను చూడటానికి క్రింది పొలాలపై క్లిక్ చేయండి")}</p>
                       </div>
                       <span className="text-[10px] bg-zinc-800/60 border border-zinc-700/50 rounded px-2 py-0.5 text-zinc-400 uppercase font-bold">
-                        Interactive Map
+                        {t("Interactive Map", "इंटरैक्टिव मानचित्र", "ఇంటరాక్టివ్ మ్యాప్")}
                       </span>
                     </div>
 
@@ -1161,21 +1161,31 @@ export default function Dashboard() {
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="text-[10px] text-emerald-500 font-bold tracking-wider uppercase">Field A1 (North)</span>
-                            <h4 className="text-lg font-bold text-zinc-200 mt-1">Chilli (మిరపకాయ - Mirapakaya)</h4>
+                            <span className="text-[10px] text-emerald-500 font-bold tracking-wider uppercase">{t("Field A1 (North)", "फील्ड ए 1 (उत्तर)", "ఫీల్డ్ A1 (ఉత్తరం)")}</span>
+                            <h4 className="text-lg font-bold text-zinc-200 mt-1">{t("Chilli", "लाल मिर्च", "మిరపకాయ")}</h4>
                           </div>
                           <span className={`h-2.5 w-2.5 rounded-full ${alphaMoisture < 30 ? "bg-rose-500 animate-pulse" : "bg-emerald-500"}`}></span>
                         </div>
                         <div className="text-xs space-y-1 text-zinc-400 font-mono">
-                          <div className="flex justify-between">
-                            <span>Moisture level:</span>
+                          <div className="flex justify-between font-sans">
+                            <span>{t("Moisture level", "नमी स्तर", "తేమ శాతం")}:</span>
                             <span className={`font-bold ${alphaMoisture < 30 ? "text-rose-400" : "text-emerald-400"}`}>
                               {alphaMoisture}%
                             </span>
                           </div>
                           <div className="flex justify-between font-sans">
-                            <span>Soil profile:</span>
-                            <span className="font-semibold text-zinc-300">{REALISTIC_LOCATIONS[activeLocationIndex].defaultSoil}</span>
+                            <span>{t("Soil profile", "मिट्टी की रूपरेखा", "నేల రకం")}:</span>
+                            <span className="font-semibold text-zinc-300">
+                              {(() => {
+                                const s = REALISTIC_LOCATIONS[activeLocationIndex].defaultSoil;
+                                if (s === "Red Sandy Clay") return t("Red Sandy Clay", "लाल रेतीली मिट्टी", "ఎర్ర ఇసుక నేల");
+                                if (s === "Black Cotton") return t("Black Cotton", "काली कपास मिट्टी", "నల్ల రేగడి నేల");
+                                if (s === "Sandy Loam") return t("Sandy Loam", "रेतीली दोमट", "ఇసుక నేల");
+                                if (s === "Red Loamy") return t("Red Loamy", "लाल दोमट", "ఎర్ర లోమి నేల");
+                                if (s === "Alluvial Clay") return t("Alluvial Clay", "जलोढ़ मिट्टी", "ఒండ్రు నేల");
+                                return t("Clay Loam", "चिकनी दोमट मिट्टी", "నల్ల గరుప నేల");
+                              })()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -1191,18 +1201,18 @@ export default function Dashboard() {
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="text-[10px] text-purple-400 font-bold tracking-wider uppercase">Field B4 (South)</span>
-                            <h4 className="text-lg font-bold text-zinc-200 mt-1">Rice (వరి - Vari)</h4>
+                            <span className="text-[10px] text-purple-400 font-bold tracking-wider uppercase">{t("Field B4 (South)", "फील्ड बी 4 (दक्षिण)", "ఫీల్డ్ B4 (దక్షిణం)")}</span>
+                            <h4 className="text-lg font-bold text-zinc-200 mt-1">{t("Rice", "चावल", "వరి")}</h4>
                           </div>
                           <span className={`h-2.5 w-2.5 rounded-full ${nitrogenLevel < 10 ? "bg-rose-500 animate-pulse" : "bg-emerald-500"}`}></span>
                         </div>
                         <div className="text-xs space-y-1 text-zinc-400 font-mono">
                           <div className="flex justify-between">
-                            <span>Moisture level:</span>
+                            <span>{t("Moisture level", "नमी स्तर", "తేమ శాతం")}:</span>
                             <span className="font-bold text-emerald-400">{betaMoisture}%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Nitrogen level:</span>
+                            <span>{t("Nitrogen level", "नाइट्रोजन स्तर", "నత్రజని శాతం")}:</span>
                             <span className={`font-bold ${nitrogenLevel < 10 ? "text-rose-400" : "text-zinc-300"}`}>
                               {nitrogenLevel} mg/kg
                             </span>
@@ -1214,9 +1224,9 @@ export default function Dashboard() {
 
                   <div className="mt-6 pt-4 border-t border-zinc-800/40 flex justify-between items-center text-xs text-zinc-500">
                     <span>
-                      {selectedField === "alpha" && `Field Alpha coordinates: Lat ${REALISTIC_LOCATIONS[activeLocationIndex].latitude}, Long ${REALISTIC_LOCATIONS[activeLocationIndex].longitude}`}
-                      {selectedField === "beta" && `Field Beta coordinates: Lat ${(REALISTIC_LOCATIONS[activeLocationIndex].latitude + 0.005).toFixed(4)}, Long ${(REALISTIC_LOCATIONS[activeLocationIndex].longitude + 0.005).toFixed(4)}`}
-                      {!selectedField && "Click a field card to view vegetative status indicators"}
+                      {selectedField === "alpha" && `${t("Field Alpha coordinates", "फील्ड अल्फा निर्देशांक", "ఫీల్డ్ ఆల్ఫా కోఆర్డినేట్లు")}: Lat ${REALISTIC_LOCATIONS[activeLocationIndex].latitude}, Long ${REALISTIC_LOCATIONS[activeLocationIndex].longitude}`}
+                      {selectedField === "beta" && `${t("Field Beta coordinates", "फील्ड बीटा निर्देशांक", "ఫీల్డ్ బీటా కోఆర్డినేట్లు")}: Lat ${(REALISTIC_LOCATIONS[activeLocationIndex].latitude + 0.005).toFixed(4)}, Long ${(REALISTIC_LOCATIONS[activeLocationIndex].longitude + 0.005).toFixed(4)}`}
+                      {!selectedField && t("Click a field card to view vegetative status indicators", "सक्रिय स्थिति संकेतकों को देखने के लिए फ़ील्ड कार्ड पर क्लिक करें", "పొలాల స్థితిని చూడటానికి ఏదైనా పొలం కార్డుపై క్లిక్ చేయండి")}
                     </span>
                     <button
                       onClick={() => {
@@ -1225,7 +1235,7 @@ export default function Dashboard() {
                       }}
                       className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
                     >
-                      Plan New Crop Season →
+                      {t("Plan New Crop Season", "नई फसल सीजन की योजना बनाएं", "కొత్త పంట ప్రణాళికను సిద్ధం చేయండి")} →
                     </button>
                   </div>
                 </div>
