@@ -11,83 +11,68 @@ An enterprise-grade, multi-agent AI platform built to revolutionize precision ag
 
 ---
 
-## 💻 How to Run in GitHub Codespaces
+## 🚀 How to Run the Application
 
-To run the full stack with live PostgreSQL, Redis, and MinIO databases, open **four separate terminal tabs** in your Codespace and run the following:
+You can run this platform in two modes: **Unified Production (Docker)** or **Standalone Developer (Local)**.
 
-### Terminal Tab 1: Database Containers
+### Option A: Unified Production Mode (Recommended)
+This boots the entire application stack (Next.js web app, Spring Boot Core, FastAPI Agents, PostgreSQL+pgvector, Redis, and MinIO) inside Docker containers.
+
+1. Make sure you have Docker Desktop installed and running on your machine.
+2. Run the production deploy orchestrator script from the root directory:
+   ```bash
+   ./start_production.sh
+   ```
+   *This script builds container layers, checks database health, and verifies REST endpoint responsiveness.*
+
+Once initialized, access the modules at:
+- **Web UI Dashboard**: [http://localhost:3000](http://localhost:3000)
+- **Spring Boot Core API**: [http://localhost:8080/api/v1](http://localhost:8080/api/v1)
+- **FastAPI AI Orchestrator**: [http://localhost:8000/api/v1](http://localhost:8000/api/v1)
+
+---
+
+### Option B: Standalone Developer Mode (Local Host)
+If you want to run the services on your local host (e.g. for debugging or local code edits), follow these steps:
+
+#### Step 1: Start Database Containers
 Run this command from the root directory to spin up databases in the background:
 ```bash
-docker compose up -d
+docker compose up -d postgres redis minio
 ```
 
-### Terminal Tab 2: Core Backend (Spring Boot)
-Navigate to the backend folder and start the API server:
+#### Step 2: Start Spring Boot Core Backend
+Open a new terminal tab, navigate to the folder, and run:
 ```bash
 cd backend-core
 mvn spring-boot:run
 ```
+*Verify API health check:* [http://localhost:8080/api/v1/health](http://localhost:8080/api/v1/health)
 
-### Terminal Tab 3: AI Orchestrator (FastAPI)
-Navigate to the AI folder, activate the virtual environment, install requirements, and run the server:
-```bash
-cd backend-ai
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --port 8000
-```
-
-### Terminal Tab 4: Frontend Web App (Next.js)
-Navigate to the frontend folder, install packages, and boot the web dev server:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
-
-## 🛠️ How to Run Locally (Standalone Stand-in Mode)
-
-If you are running on your local machine and do not have Docker installed, the applications automatically fall back to lightweight standalone databases (H2 in memory for Spring Boot, SQLite file for FastAPI).
-
-To run the apps and see the web interface in your browser, open **three separate terminal tabs** on your computer and run the following:
-
-### Terminal Tab 1: Core Backend (Spring Boot)
-This runs the primary business API server on port `8080` using the local in-memory H2 database:
-```bash
-cd backend-core
-mvn spring-boot:run -Dspring-boot.run.profiles=h2
-```
-*Verify connection by opening:* `http://localhost:8080/api/v1/health`
-
-### Terminal Tab 2: AI Orchestrator (FastAPI)
-This runs the AI agent server on port `8000` using the local SQLite database:
+#### Step 3: Start FastAPI AI Orchestrator
+Open a new terminal tab, navigate to the folder, activate virtualenv, and start uvicorn:
 ```bash
 cd backend-ai
 source venv/bin/activate
 uvicorn app.main:app --port 8000
 ```
-*Verify connection by opening:* `http://localhost:8000/api/v1/health`
+*Verify AI agent health check:* [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
 
-### Terminal Tab 3: Frontend Web App (Next.js)
-This starts the web user interface on port `3000`:
+#### Step 4: Start Next.js Web App
+Open a new terminal tab, navigate to the folder, install packages, and boot the web dev server:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-*Open in your browser:* `http://localhost:3000`
+*Access Web UI:* [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🧪 Automated Testing & Diagnostics
+## 🧪 Diagnostics & Diagnostics Checks
 
-If you want to run quick diagnostic tests to check if the code compiles and API endpoints work, run the test script. Note that this script automatically stops the servers when finished.
-
+To run diagnostic integration checks to verify database connectivity and JWT endpoints, run:
 ```bash
-# Run integration test suite
 chmod +x verify_phase2.sh
 ./verify_phase2.sh
 ```
