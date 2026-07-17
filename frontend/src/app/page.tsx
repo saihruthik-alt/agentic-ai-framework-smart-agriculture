@@ -916,12 +916,12 @@ export default function Dashboard() {
           {/* Nav Items */}
           <nav className="space-y-1.5">
             {[
-              { id: "dashboard", label: "Dashboard", icon: "📊" },
-              { id: "agents", label: "AI Agents", icon: "🤖" },
-              { id: "crops", label: "Crop Management", icon: "🌱" },
-              { id: "telemetry", label: "Sensor Feeds", icon: "📡" },
-              { id: "market", label: "Market Analytics", icon: "📈" },
-              { id: "profile", label: "User Profile", icon: "👤" },
+              { id: "dashboard", label: t("Dashboard", "डैशबोर्ड", "డాష్బోర్డ్"), icon: "📊" },
+              { id: "agents", label: t("AI Agents", "एआई एजेंट", "AI ఏజెంట్లు"), icon: "🤖" },
+              { id: "crops", label: t("Crop Management", "फसल प्रबंधन", "పంట నిర్వహణ"), icon: "🌱" },
+              { id: "telemetry", label: t("Sensor Feeds", "सेंसर फीड", "సెన్సార్ ఫీడ్స్"), icon: "📡" },
+              { id: "market", label: t("Market Analytics", "बाजार विश्लेषण", "మార్కెట్ విశ్లేషణ"), icon: "📈" },
+              { id: "profile", label: t("User Profile", "उपयोगकर्ता प्रोफ़ाइल", "వినియోగదారు ప్రొఫైల్"), icon: "👤" },
             ].map((item) => (
               <button
                 key={item.id}
@@ -944,7 +944,7 @@ export default function Dashboard() {
               className="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium text-rose-400/80 hover:bg-rose-950/20 hover:text-rose-300 border border-transparent transition-all duration-200 mt-4 cursor-pointer"
             >
               <span>🚪</span>
-              <span>Sign Out</span>
+              <span>{t("Sign Out", "लॉग आउट", "లాగ్ అవుట్")}</span>
             </button>
           </nav>
         </div>
@@ -1000,12 +1000,12 @@ export default function Dashboard() {
         <header className="h-16 border-b border-zinc-800 bg-[#09090f] px-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
-              <h2 className="text-sm font-bold text-zinc-200">Welcome back, {user.username}</h2>
+              <h2 className="text-sm font-bold text-zinc-200">{t("Welcome back", "स्वागत है", "స్వాగతం")}, {user.username}</h2>
             </div>
             
             {/* Changeable location selection dropdown */}
             <div className="flex items-center gap-2 border border-zinc-800 bg-[#07070c] rounded-xl px-2.5 py-1 text-xs">
-              <span className="text-zinc-550">Active Location:</span>
+              <span className="text-zinc-550">{t("Active Location", "सक्रिय स्थान", "క్రియాశీల స్థానం")}:</span>
               <select
                 value={activeLocationIndex}
                 onChange={(e) => setActiveLocationIndex(parseInt(e.target.value))}
@@ -1023,7 +1023,7 @@ export default function Dashboard() {
                 disabled={gpsDetecting}
                 className="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 rounded px-2 py-0.5 ml-2 font-bold cursor-pointer transition-colors"
               >
-                {gpsDetecting ? "Detecting..." : "📍 Detect GPS"}
+                {gpsDetecting ? t("Detecting...", "खोज रहा है...", "కనుగొంటోంది...") : `📍 ${t("Detect GPS", "जीपीएस खोजें", "GPS గుర్తించు")}`}
               </button>
             </div>
           </div>
@@ -1031,7 +1031,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             {/* Language Selector */}
             <div className="flex items-center gap-2 border border-zinc-800 bg-[#07070c] rounded-xl px-2.5 py-1 text-xs">
-              <span className="text-zinc-550">Language:</span>
+              <span className="text-zinc-550">{t("Language", "भाषा", "భాష")}:</span>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as "en" | "hi" | "te")}
@@ -1045,7 +1045,7 @@ export default function Dashboard() {
 
             <div className="flex items-center gap-2 border border-zinc-800 bg-[#0d0d15] rounded-full py-1.5 px-3.5 text-xs">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-zinc-400">Agent Network Operational</span>
+              <span className="text-zinc-400">{t("Agent Network Operational", "एजेंट नेटवर्क सक्रिय", "ఏజెంట్ నెట్‌వర్క్ పనిచేస్తోంది")}</span>
             </div>
           </div>
         </header>
