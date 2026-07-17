@@ -513,7 +513,7 @@ export default function Dashboard() {
     }
   }, [newCropIndex, newCropPlanted]);
 
-  // Multilingual translation state & translator helper
+    // Multilingual translation state & translator helper
   const [language, setLanguage] = useState<"en" | "hi" | "te">("en");
   const t = (english: string, hindi: string, telugu: string) => {
     if (language === "hi") return `${english} (${hindi})`;
@@ -545,6 +545,56 @@ export default function Dashboard() {
     { sender: "System", text: "Connected to Agent Reasoning Core. Choose an agent and type your query." }
   ]);
   const [sendingQuery, setSendingQuery] = useState(false);
+
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8000/api/v1/ws/agents");
+    
+    ws.onopen = () => {
+      console.log("WebSocket connected to backend-ai");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.error) {
+          console.error("Agent error:", data.error);
+          return;
+        }
+
+        const timestamp = new Date().toTimeString().split(" ")[0];
+        setAgentLogs((prev) => [
+          ...prev,
+          {
+            time: timestamp,
+            agent: data.agent,
+            message: data.message,
+            type: data.type
+          }
+        ]);
+        
+        if (data.agent === "Orchestrator") {
+          setSendingQuery(false);
+          setChatResponses((prev) => [
+            ...prev,
+            { sender: selectedChatAgent, text: `${data.message}` }
+          ]);
+        }
+      } catch (err) {
+        console.error("Error parsing socket frame:", err);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket closed");
+    };
+
+    setSocket(ws);
+    return () => {
+      ws.close();
+    };
+  }, [selectedChatAgent]);
 
   // Profitability Calculator / decision state
   const [calcCropIdx, setCalcCropIdx] = useState(0);
@@ -983,31 +1033,47 @@ export default function Dashboard() {
     const query = chatMessage;
     setChatMessage("");
 
-    setTimeout(() => {
-      let replyText = "";
-      const loc = REALISTIC_LOCATIONS[activeLocationIndex];
-      if (selectedChatAgent === "Weather Agent") {
-        if (query.toLowerCase().includes("rain") || query.toLowerCase().includes("forecast")) {
-          replyText = `Current forecast for ${loc.name}: Scatter rain predicted. Precipitation: 2.2mm. Irrigation deferred to conserve water.`;
-        } else {
-          replyText = `The current temperature in ${loc.name} is optimal at ${loc.tempRange.split(" ")[0]}. Humidity is 58%. Ideal conditions for vegetative crop development.`;
-        }
-      } else if (selectedChatAgent === "Irrigation Agent") {
-        replyText = `Field Alpha moisture is ${alphaMoisture}%. Field Beta moisture is ${betaMoisture}%. Drip irrigation schedules are calculated using virtual soil profile models.`;
-      } else if (selectedChatAgent === "Fertilizer Agent") {
-        replyText = `Field B soil check: Nitrogen is deficient (${nitrogenLevel} mg/kg). Suggesting organic ammonium sulfate dosage (5kg per acre) to restore nitrogen levels.`;
-      } else if (selectedChatAgent === "Market Agent") {
-        replyText = "Wholesale Mandi Rates: Tomato (టమోటా) is trading high at ₹120/kg. Chilli (మిరపకాయ) is bullish at ₹210/kg. Selling is highly recommended.";
-      } else {
-        replyText = "Sensor networks are virtual simulation nodes and are fully synchronized with our agricultural database.";
+    const payload = {
+      query: query,
+      crop: AVAILABLE_CROPS[activePlaybookCropIdx]?.value || "Rice",
+      telemetry: {
+        moisture: alphaMoisture,
+        temperature: 32,
+        humidity: 62,
+        nitrogen: nitrogenLevel
       }
+    };
 
-      setChatResponses((prev) => [...prev, { sender: selectedChatAgent, text: replyText }]);
-      setSendingQuery(false);
-    }, 1000);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(payload));
+    } else {
+      // Offline fallback
+      setTimeout(() => {
+        let replyText = "";
+        const loc = REALISTIC_LOCATIONS[activeLocationIndex];
+        if (selectedChatAgent === "Weather Agent") {
+          if (query.toLowerCase().includes("rain") || query.toLowerCase().includes("forecast")) {
+            replyText = `Current forecast for ${loc.name}: Scatter rain predicted. Precipitation: 2.2mm. Irrigation deferred to conserve water.`;
+          } else {
+            replyText = `The current temperature in ${loc.name} is optimal at ${loc.tempRange.split(" ")[0]}. Humidity is 58%. Ideal conditions for vegetative crop development.`;
+          }
+        } else if (selectedChatAgent === "Irrigation Agent") {
+          replyText = `Field Alpha moisture is ${alphaMoisture}%. Field Beta moisture is ${betaMoisture}%. Drip irrigation schedules are calculated using virtual soil profile models.`;
+        } else if (selectedChatAgent === "Fertilizer Agent") {
+          replyText = `Field B soil check: Nitrogen is deficient (${nitrogenLevel} mg/kg). Suggesting organic ammonium sulfate dosage (5kg per acre) to restore nitrogen levels.`;
+        } else if (selectedChatAgent === "Market Agent") {
+          replyText = "Wholesale Mandi Rates: Tomato (టమోటా) is trading high at ₹120/kg. Chilli (మిరపకాయ) is bullish at ₹210/kg. Selling is highly recommended.";
+        } else {
+          replyText = "Sensor networks are virtual simulation nodes and are fully synchronized with our agricultural database.";
+        }
+
+        setChatResponses((prev) => [...prev, { sender: selectedChatAgent, text: replyText }]);
+        setSendingQuery(false);
+      }, 1000);
+    }
   };
 
-  const handleDetectLeafDisease = (sampleKey: string) => {
+  const handleDetectLeafDisease = async (sampleKey: string) => {
     setSelectedLeafSample(sampleKey);
     setScanningLeaf(true);
     setScanResult(null);
@@ -1023,22 +1089,55 @@ export default function Dashboard() {
       }
     ]);
 
-    setTimeout(() => {
-      const data = LEAF_DISEASE_DATA[sampleKey];
-      setScanResult(data);
-      setScanningLeaf(false);
+    try {
+      const formData = new FormData();
+      const mockBlob = new Blob(["mock-image-data"], { type: "image/jpeg" });
+      formData.append("file", mockBlob, `${sampleKey}.jpg`);
 
+      const res = await fetch("http://localhost:8000/api/v1/cv/disease", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      
+      setScanResult({
+        diseaseName: data.classification,
+        localName: data.localName,
+        medicine: data.treatment.medicine,
+        dosage: data.treatment.dosage,
+        tips: data.treatment.preventiveTips
+      });
+      
+      setScanningLeaf(false);
       const doneTimestamp = new Date().toTimeString().split(" ")[0];
       setAgentLogs((prev) => [
         ...prev,
         {
           time: doneTimestamp,
           agent: "Disease Vision Agent",
-          message: `Scan complete: ${data.diseaseName} detected with 94.2% confidence. Treatment prescription generated.`,
+          message: `Scan complete: ${data.classification} detected.`,
           type: "disease"
         }
       ]);
-    }, 1500);
+    } catch (err) {
+      // Offline fallback
+      setTimeout(() => {
+        const data = LEAF_DISEASE_DATA[sampleKey] || LEAF_DISEASE_DATA["tomato"];
+        setScanResult(data);
+        setScanningLeaf(false);
+
+        const doneTimestamp = new Date().toTimeString().split(" ")[0];
+        setAgentLogs((prev) => [
+          ...prev,
+          {
+            time: doneTimestamp,
+            agent: "Disease Vision Agent",
+            message: `Scan complete: ${data.diseaseName} detected with 94.2% confidence. Treatment prescription generated.`,
+            type: "disease"
+          }
+        ]);
+      }, 1000);
+    }
   };
 
   // Change Password Logic

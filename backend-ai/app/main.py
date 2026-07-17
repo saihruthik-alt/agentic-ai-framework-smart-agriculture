@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import init_db, get_db
+from app.api.websocket import router as ws_router
+from app.api.disease import router as cv_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,6 +22,10 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan
 )
+
+# Register routers
+app.include_router(ws_router, prefix=settings.API_V1_STR)
+app.include_router(cv_router, prefix=settings.API_V1_STR)
 
 # Set all CORS enabled origins
 app.add_middleware(
