@@ -131,94 +131,335 @@ const LEAF_DISEASE_DATA: Record<string, { diseaseName: string; localName: string
 };
 
 const CROP_CULTIVATION_PLAYBOOKS: Record<string, {
-  sowing: string;
-  landPrep: string;
-  irrigation: string;
-  fertilizer: string;
-  pestControl: string;
-  harvest: string;
+  sowing: { en: string; hi: string; te: string };
+  landPrep: { en: string; hi: string; te: string };
+  irrigation: { en: string; hi: string; te: string };
+  fertilizer: { en: string; hi: string; te: string };
+  pestControl: { en: string; hi: string; te: string };
+  harvest: { en: string; hi: string; te: string };
 }> = {
   Rice: {
-    sowing: "Nursery sowing: Use 20kg certified seeds per acre. Soak in Carbendazim solution for 24h before broadcasting. Transplant seedlings at 21-25 days maturity.",
-    landPrep: "Puddling: Plough field 2-3 times, flood with 5-10cm water. Apply 10 tonnes of organic farmyard manure (FYM) per acre to improve clay soil cohesion.",
-    irrigation: "Keep 2-5cm standing water level constantly during vegetative stages. Drain field 10-14 days before harvesting.",
-    fertilizer: "Basal: NPK 20:20:20 (50kg/acre). Top-dressing: Urea (Nitrogen) at 30 days (30kg) and 60 days (20kg) during panicle initiation.",
-    pestControl: "Monitor Stem Borer (Spindle spots). Apply Cartap Hydrochloride (4G) at 10kg/acre if damage exceeds 10% threshold.",
-    harvest: "Cut stalks when 90% panicles turn golden brown. Dry grains under sunlight until moisture dips below 14% to prevent mandi spoilage."
+    sowing: {
+      en: "Nursery sowing: Use 20kg certified seeds per acre. Soak in Carbendazim solution for 24h before broadcasting. Transplant seedlings at 21-25 days maturity.",
+      hi: "नर्सरी बुवाई: प्रति एकड़ 20 किलोग्राम प्रमाणित बीजों का उपयोग करें। बोने से पहले 24 घंटे के लिए कार्बेन्डाजिम घोल में भिगोएँ। 21-25 दिनों में पौधों का प्रत्यारोपण करें।",
+      te: "నర్సరీ నాటడం: ఎకరాకు 20 కిలోల ధృవీకరించిన విత్తనాలను వాడండి. చల్లే ముందు 24 గంటల పాటు కార్బెండజిమ్ ద్రావణంలో నానబెట్టండి. 21-25 రోజులలో నారు నాటండి."
+    },
+    landPrep: {
+      en: "Puddling: Plough field 2-3 times, flood with 5-10cm water. Apply 10 tonnes of organic farmyard manure (FYM) per acre to improve clay soil cohesion.",
+      hi: "कदम बनाना: खेत को 2-3 बार जोतें, 5-10 सेमी पानी भरें। मिट्टी के सामंजस्य को सुधारने के लिए प्रति एकड़ 10 टन जैविक खाद (FYM) डालें।",
+      te: "దుక్కి దున్నడం: పొలాన్ని 2-3 సార్లు దున్నండి, 5-10 సెం.మీ నీటితో నింపండి. మట్టి బలానికి ఎకరాకు 10 టన్నుల సేంద్రీయ ఎరువును వేయండి."
+    },
+    irrigation: {
+      en: "Keep 2-5cm standing water level constantly during vegetative stages. Drain field 10-14 days before harvesting.",
+      hi: "वानस्पतिक चरणों के दौरान लगातार 2-5 सेमी खड़ा पानी का स्तर रखें। कटाई से 10-14 दिन पहले खेत का पानी निकाल दें।",
+      te: "పంట ఎదుగుదల దశలలో నిరంతరం 2-5 సెం.మీ నీరు ఉండేలా చూసుకోండి. కోతకు 10-14 రోజుల ముందు నీటిని తీసివేయండి."
+    },
+    fertilizer: {
+      en: "Basal: NPK 20:20:20 (50kg/acre). Top-dressing: Urea (Nitrogen) at 30 days (30kg) and 60 days (20kg) during panicle initiation.",
+      hi: "आधार: NPK 20:20:20 (50 किग्रा/एकड़)। टॉप-ड्रेसिंग: यूरिया (नाइट्रोजन) 30 दिन (30 किग्रा) और 60 दिन (20 किग्रा) पर।",
+      te: "ప్రాథమిక ఎరువు: NPK 20:20:20 (ఎకరాకు 50 కిలోలు). టాప్-డ్రెస్సింగ్: యూరియాను 30 రోజులలో (30 కిలోలు) మరియు 60 రోజులలో (20 కిలోలు) వేయండి."
+    },
+    pestControl: {
+      en: "Monitor Stem Borer (Spindle spots). Apply Cartap Hydrochloride (4G) at 10kg/acre if damage exceeds 10% threshold.",
+      hi: "तना छेदक की निगरानी करें। यदि नुकसान 10% से अधिक हो तो 10 किग्रा/एकड़ की दर से कार्टाप हाइड्रोक्लोराइड (4G) लगाएं।",
+      te: "కాండం తొలుచు పురుగును గమనించండి. నష్టం 10% దాటితే ఎకరాకు 10 కిలోల కార్టాప్ హైడ్రోక్లోరైడ్ (4G) వేయండి."
+    },
+    harvest: {
+      en: "Cut stalks when 90% panicles turn golden brown. Dry grains under sunlight until moisture dips below 14% to prevent mandi spoilage.",
+      hi: "जब 90% बालियाँ सुनहरी भूरी हो जाएँ तो कटाई करें। मंडी में खराब होने से बचाने के लिए दानों को धूप में तब तक सुखाएं जब तक नमी 14% से कम न हो जाए।",
+      te: "90% వెన్నులు బంగారు రంగులోకి మారినప్పుడు కోయండి. ధాన్యం పాడవకుండా ఉండటానికి తేమ శాతం 14% కంటే తగ్గేలా ఎండబెట్టండి."
+    }
   },
   Cotton: {
-    sowing: "Direct seeding: Plant seeds at 3-4cm depth with 90x60cm spacing. Use 1.5-2.0kg Bt Hybrid seeds per acre.",
-    landPrep: "Deep plowing: Work the soil 2-3 times using tractor cultivators. Construct ridges and furrows to prevent root waterlogging.",
-    irrigation: "Moderate requirement. Irrigate at critical phases: flowering and boll development. Avoid standing water.",
-    fertilizer: "NPK ratios: 60:30:30 kg per acre. Apply Nitrogen in three split doses: at sowing, 30 days, and 60 days.",
-    pestControl: "Pink Bollworm vigilance: Use pheromone traps (5/acre). Spray Neem Oil (1500ppm) or Spinosad if boll damage occurs.",
-    harvest: "Hand-pick clean cotton from fully opened bolls only. Avoid picking dew-moist cotton to maintain high fiber quality grade."
+    sowing: {
+      en: "Direct seeding: Plant seeds at 3-4cm depth with 90x60cm spacing. Use 1.5-2.0kg Bt Hybrid seeds per acre.",
+      hi: "सीधी बुवाई: 90x60 सेमी की दूरी के साथ 3-4 सेमी गहराई पर बीज बोएं। प्रति एकड़ 1.5-2.0 किग्रा बीटी हाइब्रिड बीजों का उपयोग करें।",
+      te: "నేరుగా నాటడం: 90x60 సెం.మీ అంతరంతో 3-4 సెం.మీ లోతులో విత్తనాలను నాటండి. ఎకరాకు 1.5-2.0 కిలోల బిటి హైబ్రిడ్ విత్తనాలను వాడండి."
+    },
+    landPrep: {
+      en: "Deep plowing: Work the soil 2-3 times using tractor cultivators. Construct ridges and furrows to prevent root waterlogging.",
+      hi: "गहरी जुताई: ट्रैक्टर कल्टीवेटर से मिट्टी को 2-3 बार जोतें। जड़ों में जलभराव को रोकने के लिए मेड़ और खाइयां बनाएं।",
+      te: "లోతు దుక్కి: ట్రాక్టర్ సహాయంతో నేలను 2-3 సార్లు బాగా దున్నండి. వేర్లలో నీరు నిల్వ ఉండకుండా బోదెలు, కాలువలు ఏర్పాటు చేయండి."
+    },
+    irrigation: {
+      en: "Moderate requirement. Irrigate at critical phases: flowering and boll development. Avoid standing water.",
+      hi: "मध्यम आवश्यकता। महत्वपूर्ण चरणों में सिंचाई करें: फूल आने और डोडा बनने के समय। खड़े पानी से बचें।",
+      te: "మితమైన నీటి పారుదల. పూత మరియు కాయ దశలలో నీటిని అందించండి. పొలంలో నీరు నిల్వ ఉండకుండా చూసుకోండి."
+    },
+    fertilizer: {
+      en: "NPK ratios: 60:30:30 kg per acre. Apply Nitrogen in three split doses: at sowing, 30 days, and 60 days.",
+      hi: "NPK अनुपात: 60:30:30 किग्रा प्रति एकड़। नाइट्रोजन तीन अलग-अलग खुराकों में डालें: बुवाई के समय, 30 दिन और 60 दिन पर।",
+      te: "NPK నిష్పత్తి: ఎకరాకు 60:30:30 కిలోలు. నత్రజనిని మూడు విడతలుగా వేయండి: నాటేటప్పుడు, 30 రోజులకు మరియు 60 రోజులకు."
+    },
+    pestControl: {
+      en: "Pink Bollworm vigilance: Use pheromone traps (5/acre). Spray Neem Oil (1500ppm) or Spinosad if boll damage occurs.",
+      hi: "गुलाबी सुंडी से सतर्क रहें: फेरोमोन ट्रैप (5/एकड़) का उपयोग करें। डोडा खराब होने पर नीम का तेल (1500ppm) या स्पिनोसैड का छिड़काव करें।",
+      te: "గులాబి రంగు కాయ తొలిచే పురుగు నివారణ: ఎకరాకు 5 లింగాకర్షణ బుట్టలను అమర్చండి. వేప నూనె (1500ppm) లేదా స్పినోసాడ్ పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Hand-pick clean cotton from fully opened bolls only. Avoid picking dew-moist cotton to maintain high fiber quality grade.",
+      hi: "केवल पूरी तरह से खुले हुए डोडों से ही साफ कपास हाथ से चुनें। उच्च फाइबर गुणवत्ता ग्रेड बनाए रखने के लिए ओस से गीले कपास को न चुनें।",
+      te: "పూర్తిగా విచ్చుకున్న కాయల నుండి మాత్రమే పత్తిని ఏరండి. పత్తి నాణ్యత దెబ్బతినకుండా ఉండటానికి మంచు తడి ఉన్నప్పుడు ఏరవద్దు."
+    }
   },
   Chilli: {
-    sowing: "Nursery raising: Sown in December. Transplant healthy seedlings at 5-6 weeks age. Spacing: 60x45cm.",
-    landPrep: "Fine tilth: Incorporate 12 tonnes FYM per acre. Build raised beds with plastic mulching sheets to check weed growth.",
-    irrigation: "Drip irrigation highly recommended. Keep soil moist but never saturated. Irrigate every 4-7 days depending on temperature.",
-    fertilizer: "NPK 120:60:60 kg per acre. Apply Phosphatic fertilizers fully as basal, Nitrogen & Potash in 4 split doses.",
-    pestControl: "Thrips & Mites: Spray Fipronil 5% SC (2.0ml/L) or organic Garlic-Chilli extract spray to check leaf curling.",
-    harvest: "Pick fully ripe red fruits for dry chilli index. Pick green chillies at 10-day intervals for fresh vegetable mandis."
+    sowing: {
+      en: "Nursery raising: Sown in December. Transplant healthy seedlings at 5-6 weeks age. Spacing: 60x45cm.",
+      hi: "नर्सरी तैयार करना: दिसंबर में बुवाई की जाती है। 5-6 सप्ताह पुराने स्वस्थ पौधों का रोपण करें। दूरी: 60x45 सेमी।",
+      te: "నర్సరీ పెంపకం: డిసెంబర్‌లో విత్తనాలు వేయాలి. 5-6 వారాల వయసున్న నారును నాటండి. అంతరం: 60x45 సెం.మీ."
+    },
+    landPrep: {
+      en: "Fine tilth: Incorporate 12 tonnes FYM per acre. Build raised beds with plastic mulching sheets to check weed growth.",
+      hi: "बारीक जुताई: प्रति एकड़ 12 टन FYM मिलाएं। खरपतवार नियंत्रण के लिए प्लास्टिक मल्चिंग शीट के साथ उठी हुई क्यारियाँ बनाएँ।",
+      te: "నేల తయారీ: ఎకరాకు 12 టన్నుల పశువుల ఎరువు వేయండి. కలుపు నివారణకు ప్లాస్టిక్ మల్చింగ్ షీట్లతో ఎత్తైన బెడ్లను తయారు చేయండి."
+    },
+    irrigation: {
+      en: "Drip irrigation highly recommended. Keep soil moist but never saturated. Irrigate every 4-7 days depending on temperature.",
+      hi: "ड्रिप सिंचाई की अत्यधिक सिफारिश की जाती है। मिट्टी को नम रखें लेकिन पानी जमा न होने दें। तापमान के आधार पर हर 4-7 दिनों में सिंचाई करें।",
+      te: "డ్రిప్ నీటి పారుదల చాలా మంచిది. నేలలో తగినంత తేమ ఉంచండి. ఉష్ణోగ్రత ఆధారంగా ప్రతి 4-7 రోజులకు ఒకసారి నీరు పెట్టండి."
+    },
+    fertilizer: {
+      en: "NPK 120:60:60 kg per acre. Apply Phosphatic fertilizers fully as basal, Nitrogen & Potash in 4 split doses.",
+      hi: "NPK 120:60:60 किग्रा प्रति एकड़। फॉस्फेटिक उर्वरकों को पूरी तरह से आधार के रूप में डालें, नाइट्रोजन और पोटाश 4 अलग खुराकों में डालें।",
+      te: "NPK 120:60:60 కిలోలు ఎకరాకు. భాస్వరం పూర్తిగా ప్రాథమికంగా వేయండి, నత్రజని & పొటాష్‌ను 4 విడతలుగా వేయండి."
+    },
+    pestControl: {
+      en: "Thrips & Mites: Spray Fipronil 5% SC (2.0ml/L) or organic Garlic-Chilli extract spray to check leaf curling.",
+      hi: "थ्रिप्स और माइट्स: पत्ती मुड़ने के नियंत्रण के लिए फिप्रोनिल 5% SC (2.0ml/L) या जैविक लहसुन-मिर्च के अर्क का छिड़काव करें।",
+      te: "తామర పురుగులు & నల్లి నివారణ: ఆకు ముడుత నివారణకు ఫిప్రోనిల్ 5% SC (2.0ml/L) లేదా వెల్లుల్లి-మిర్చి కషాయం పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Pick fully ripe red fruits for dry chilli index. Pick green chillies at 10-day intervals for fresh vegetable mandis.",
+      hi: "सूखी लाल मिर्च के लिए पूरी तरह पके लाल फलों को चुनें। ताजी सब्जी मंडियों के लिए 10 दिनों के अंतराल पर हरी मिर्च चुनें।",
+      te: "ఎండుమిర్చి కొరకు బాగా పండిన ఎర్రటి కాయలను కోయండి. పచ్చిమిర్చి కొరకు ప్రతి 10 రోజులకు ఒకసారి కోత కోయండి."
+    }
   },
   Groundnut: {
-    sowing: "Shell pods 1-2 days before sowing. Seed rate: 45kg kernels per acre. Spacing: 30x10cm.",
-    landPrep: "Plough 2 times to get loose sandy loam texture. Apply Gypsum at 200kg per acre during pegging to boost pod density.",
-    irrigation: "Requires 4-6 irrigations. Critical phases are flowering, pegging, and pod formation. Avoid water stress at pegging.",
-    fertilizer: "NPK 10:20:30 kg per acre. Gypsum application is critical to supply Calcium and Sulphur for oil production.",
-    pestControl: "Red Hairy Caterpillar & Tikka leaf spot. Apply Carbendazim (1g/L) for leaf spot control.",
-    harvest: "Pull plants when leaves turn yellow and inner shells turn blackish. Dry vines in field for 3 days before stripping pods."
+    sowing: {
+      en: "Shell pods 1-2 days before sowing. Seed rate: 45kg kernels per acre. Spacing: 30x10cm.",
+      hi: "बुवाई से 1-2 दिन पहले फली छीलें। बीज दर: 45 किग्रा दाने प्रति एकड़। दूरी: 30x10 सेमी।",
+      te: "నాటడానికి 1-2 రోజుల ముందు కాయల నుండి పప్పు వేరుచేయండి. విత్తన మోతాదు: ఎకరాకు 45 కిలోల పప్పు. అంతరం: 30x10 సెం.మీ."
+    },
+    landPrep: {
+      en: "Plough 2 times to get loose sandy loam texture. Apply Gypsum at 200kg per acre during pegging to boost pod density.",
+      hi: "ढीली रेतीली दोमट बनावट पाने के लिए 2 बार जोतें। फली घनत्व बढ़ाने के लिए पेगिंग के दौरान प्रति एकड़ 200 किग्रा जिप्सम डालें।",
+      te: "నేలను 2 సార్లు బాగా దున్నండి. కాయలు బాగా ఊరడానికి ఊడలు దిగే దశలో ఎకరాకు 200 కిలోల జిప్సం వేయండి."
+    },
+    irrigation: {
+      en: "Requires 4-6 irrigations. Critical phases are flowering, pegging, and pod formation. Avoid water stress at pegging.",
+      hi: "4-6 सिंचाइयों की आवश्यकता होती है। महत्वपूर्ण चरण फूल आना, पेगिंग और फली बनना हैं। पेगिंग के समय पानी की कमी न होने दें।",
+      te: "4-6 తడులు అవసరం. పూత దశ, ఊడలు దిగే దశ మరియు కాయ తయారయ్యే దశలు చాలా కీలకం. ఊడలు దిగే దశలో నీటి కొరత లేకుండా చూసుకోండి."
+    },
+    fertilizer: {
+      en: "NPK 10:20:30 kg per acre. Gypsum application is critical to supply Calcium and Sulphur for oil production.",
+      hi: "NPK 10:20:30 किग्रा प्रति एकड़। तेल उत्पादन के लिए कैल्शियम और सल्फर की आपूर्ति के लिए जिप्सम डालना महत्वपूर्ण है।",
+      te: "NPK 10:20:30 కిలోలు ఎకరాకు. నూనె శాతం పెరగడానికి క్యాల్షియం, సల్ఫర్ అందించే జిప్సం వేయడం చాలా అవసరం."
+    },
+    pestControl: {
+      en: "Red Hairy Caterpillar & Tikka leaf spot. Apply Carbendazim (1g/L) for leaf spot control.",
+      hi: "लाल बालों वाली सूंडी और टिक्का पत्ती धब्बा रोग। पत्ती धब्बा नियंत्रण के लिए कार्बेन्डाजिम (1g/L) लगाएं।",
+      te: "ఎర్ర గొంగళి పురుగు & టిక్కా ఆకుమచ్చ తెగులు. ఆకుమచ్చ నివారణకు కార్బెండజిమ్ (1g/L) పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Pull plants when leaves turn yellow and inner shells turn blackish. Dry vines in field for 3 days before stripping pods.",
+      hi: "जब पत्तियाँ पीली हो जाएँ और भीतरी छिलका काला पड़ जाए तो पौधों को उखाड़ लें। फलियाँ निकालने से पहले लताओं को 3 दिन धूप में सुखाएं।",
+      te: "ఆకులు పసుపు రంగులోకి మారి, కాయ లోపలి పొర నల్లగా మారినప్పుడు పంటను పీకండి. కాయలు వేరుచేసే ముందు పొలంలో 3 రోజులు ఆరబెట్టండి."
+    }
   },
   Maize: {
-    sowing: "Dibble seeds at 5cm depth. Seed rate: 8kg per acre. Spacing: 60x20cm for optimal leaf aeration.",
-    landPrep: "Deep tilling: Plough field 2-3 times. Apply 8 tonnes of compost/manure to enrich organic carbon content.",
-    irrigation: "Irrigate immediately after sowing. Maintain steady soil moisture during tasseling and silking stages.",
-    fertilizer: "NPK 48:24:20 kg per acre. Apply full Phosphorus & Potassium basal, Nitrogen split at knee-high and tasseling stages.",
-    pestControl: "Fall Armyworm: Inspect leaf whorls. Apply Chlorantraniliprole (18.5% SC) at 0.4ml per Litre of water.",
-    harvest: "Harvest when cob sheaths turn paper dry and black layer forms at the grain base. Grain moisture should be 15-18%."
+    sowing: {
+      en: "Dibble seeds at 5cm depth. Seed rate: 8kg per acre. Spacing: 60x20cm for optimal leaf aeration.",
+      hi: "5 सेमी गहराई पर बीज बोएं। बीज दर: 8 किग्रा प्रति एकड़। इष्टतम वेंटिलेशन के लिए दूरी: 60x20 सेमी।",
+      te: "5 సెం.మీ లోతులో విత్తనాలను నాటండి. విత్తన మోతాదు: ఎకరాకు 8 కిలోలు. మొక్కల అంతరం: 60x20 సెం.మీ."
+    },
+    landPrep: {
+      en: "Deep tilling: Plough field 2-3 times. Apply 8 tonnes of compost/manure to enrich organic carbon content.",
+      hi: "गहरी जुताई: खेत को 2-3 बार जोतें। कार्बनिक कार्बन बढ़ाने के लिए 8 टन खाद/कम्पोस्ट डालें।",
+      te: "లోతు దుక్కి: నేలను 2-3 సార్లు దున్నండి. సేంద్రీయ కర్బనాన్ని పెంచడానికి 8 టన్నుల కంపొస్ట్ ఎరువు వేయండి."
+    },
+    irrigation: {
+      en: "Irrigate immediately after sowing. Maintain steady soil moisture during tasseling and silking stages.",
+      hi: "बुवाई के तुरंत बाद सिंचाई करें। फूल आने और दाने बनने के चरणों के दौरान स्थिर नमी बनाए रखें।",
+      te: "విత్తిన వెంటనే నీరు పెట్టండి. పూత దశ మరియు కంకి దశలలో పొలంలో తగినంత తేమ ఉండేలా చూసుకోండి."
+    },
+    fertilizer: {
+      en: "NPK 48:24:20 kg per acre. Apply full Phosphorus & Potassium basal, Nitrogen split at knee-high and tasseling stages.",
+      hi: "NPK 48:24:20 किग्रा प्रति एकड़। फास्फोरस और पोटेशियम पूरा आधार के रूप में डालें, नाइट्रोजन घुटने के ऊंचाई और फूल आने के समय डालें।",
+      te: "NPK 48:24:20 కిలోలు ఎకరాకు. భాస్వరం & పొటాష్ పూర్తిగా నాటేటప్పుడు వేయండి, నత్రజనిని మోకాళ్ళ ఎత్తు దశ మరియు పూత దశలలో వేయండి."
+    },
+    pestControl: {
+      en: "Fall Armyworm: Inspect leaf whorls. Apply Chlorantraniliprole (18.5% SC) at 0.4ml per Litre of water.",
+      hi: "फॉल्स आर्मीवर्म: पत्ती चक्रों का निरीक्षण करें। प्रति लीटर पानी में 0.4ml क्लोरेंट्रानिलिप्रोल (18.5% SC) लगाएं।",
+      te: "కత్తెర పురుగు: సుడి ఆకులను గమనించండి. నివారణకు లీటర్ నీటికి 0.4ml క్లోరాంట్రానిలిప్రోల్ (18.5% SC) పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Harvest when cob sheaths turn paper dry and black layer forms at the grain base. Grain moisture should be 15-18%.",
+      hi: "कटाई तब करें जब भुट्टे के छिलके कागज की तरह सूख जाएं और दानों के आधार पर काली परत बन जाए। दानों में नमी 15-18% होनी चाहिए।",
+      te: "కంకి పొట్టు పూర్తిగా ఎండిపోయి, గింజ మొదలు భాగంలో నల్లటి మచ్చ ఏర్పడినప్పుడు కోయండి. గింజల్లో తేమ 15-18% ఉండాలి."
+    }
   },
   Tomato: {
-    sowing: "Raise in plug-trays. Transplant at 25-30 days with 60x45cm spacing on raised beds with staking supports.",
-    landPrep: "Chisel ploughing: Mix 10 tonnes FYM and Trichoderma bio-fungicide to prevent soil-borne damping off diseases.",
-    irrigation: "Provide drip irrigation daily (2-3 Litres per plant). Avoid overhead spraying to control fungal blights.",
-    fertilizer: "NPK 60:80:60 kg per acre. Supplement with Calcium Nitrate to prevent blossom end rot in ripening fruits.",
-    pestControl: "Fruit Borer: Plant marigold trap crops. Spray Neem oil or Bacillus thuringiensis (Bt) formulation.",
-    harvest: "Harvest at 'breaker stage' (pink blush) for long-distance transport. Harvest fully red for local processing mandis."
+    sowing: {
+      en: "Raise in plug-trays. Transplant at 25-30 days with 60x45cm spacing on raised beds with staking supports.",
+      hi: "प्लग-ट्रे में तैयार करें। स्टैकिंग सपोर्ट के साथ उठी हुई क्यारियों पर 60x45 सेमी की दूरी पर 25-30 दिनों में रोपाई करें।",
+      te: "ప్రొట్రేలలో నారు పెంచండి. 25-30 రోజుల వయసున్న నారును కట్టెల మద్దతుతో ఎత్తైన బెడ్లపై 60x45 సెం.మీ అంతరంతో నాటండి."
+    },
+    landPrep: {
+      en: "Chisel ploughing: Mix 10 tonnes FYM and Trichoderma bio-fungicide to prevent soil-borne damping off diseases.",
+      hi: "छेनी जुताई: मिट्टी जनित डैम्पिंग ऑफ रोगों को रोकने के लिए 10 टन FYM और ट्राइकोडेरमा बायो-कवकनाशी मिलाएं।",
+      te: "నేల తయారీ: నేల ద్వారా వచ్చే తెగుళ్ల నివారణకు 10 టన్నుల పశువుల ఎరువు మరియు ట్రైకోడెర్మా బయో-ఫంగిసైడ్ కలపండి."
+    },
+    irrigation: {
+      en: "Provide drip irrigation daily (2-3 Litres per plant). Avoid overhead spraying to control fungal blights.",
+      hi: "प्रतिदिन ड्रिप सिंचाई प्रदान करें (2-3 लीटर प्रति पौधा)। फंगल ब्लाइट को नियंत्रित करने के लिए ऊपर से छिड़काव से बचें।",
+      te: "ప్రతిరోజూ డ్రిప్ ద్వారా నీరు ఇవ్వండి (మొక్కకు 2-3 లీటర్లు). శిలీంధ్ర తెగుళ్ల నివారణకు పైనుండి నీరు చిమ్మడం నివారించండి."
+    },
+    fertilizer: {
+      en: "NPK 60:80:60 kg per acre. Supplement with Calcium Nitrate to prevent blossom end rot in ripening fruits.",
+      hi: "NPK 60:80:60 किग्रा प्रति एकड़। पकने वाले फलों में ब्लॉसम एंड रॉट को रोकने के लिए कैल्शियम नाइट्रेट की खुराक दें।",
+      te: "NPK 60:80:60 కిలోలు ఎకరాకు. కాయ కుళ్ళు తెగులు నివారించడానికి కాల్షియం నైట్రేట్ అందించండి."
+    },
+    pestControl: {
+      en: "Fruit Borer: Plant marigold trap crops. Spray Neem oil or Bacillus thuringiensis (Bt) formulation.",
+      hi: "फल छेदक: गेंदे की ट्रैप फसलें लगाएं। नीम का तेल या बैसिलस थुरिंगिएन्सिस (Bt) फॉर्मूलेशन का छिड़काव करें।",
+      te: "కాయ తొలిచే పురుగు: బంతి మొక్కలను ఎర పంటగా నాటండి. వేప నూనె లేదా బాసిల్లస్ తురింజియెన్సిస్ (Bt) పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Harvest at 'breaker stage' (pink blush) for long-distance transport. Harvest fully red for local processing mandis.",
+      hi: "लंबी दूरी के परिवहन के लिए 'ब्रेकर चरण' (गुलाबी रंग) पर कटाई करें। स्थानीय प्रसंस्करण मंडियों के लिए पूरी तरह से लाल होने पर कटाई करें।",
+      te: "దూర ప్రాంత రవాణా కొరకు కొద్దిగా రంగు మారే దశలో కోయండి. స్థానిక మార్కెట్ కొరకు బాగా పండిన ఎర్రటి కాయలను కోయండి."
+    }
   },
   Wheat: {
-    sowing: "Sowing time: November. Seed rate: 40kg per acre. Spacing: 22.5cm rows using seed-drill machinery.",
-    landPrep: "Prepare field to fine tilth. Ensure field levelness to prevent water pooling in low-lying spots.",
-    irrigation: "Requires 5-6 irrigations at Crown Root Initiation (CRI) at 21 days, tillering, jointing, flowering, and milk stages.",
-    fertilizer: "NPK 50:25:12 kg per acre. Top-dress Urea splits before the first and second irrigations.",
-    pestControl: "Rust diseases: Yellow and brown rust. Spray Propiconazole (25% EC) at 1ml/L if symptoms appear.",
-    harvest: "Harvest using combine harvesters when grains are hard and dry (straw turns golden yellow and brittle)."
+    sowing: {
+      en: "Sowing time: November. Seed rate: 40kg per acre. Spacing: 22.5cm rows using seed-drill machinery.",
+      hi: "बुवाई का समय: नवंबर। बीज दर: 40 किग्रा प्रति एकड़। सीड-ड्रिल मशीन से दूरी: 22.5 सेमी पंक्तियों में।",
+      te: "నాటే సమయం: నవంబర్. విత్తన మోతాదు: ఎకరాకు 40 కిలోలు. సీడ్ డ్రిల్ సహాయంతో 22.5 సెం.మీ అంతరంతో వరసలలో విత్తండి."
+    },
+    landPrep: {
+      en: "Prepare field to fine tilth. Ensure field levelness to prevent water pooling in low-lying spots.",
+      hi: "खेत को अच्छी तरह से जोतें। निचले इलाकों में पानी जमा होने से रोकने के लिए खेत को समतल करना सुनिश्चित करें।",
+      te: "నేలను మెత్తటి దుక్కిగా తయారు చేయండి. పొలంలో నీరు నిల్వ ఉండకుండా సమానంగా ఉండేలా చూసుకోండి."
+    },
+    irrigation: {
+      en: "Requires 5-6 irrigations at Crown Root Initiation (CRI) at 21 days, tillering, jointing, flowering, and milk stages.",
+      hi: "21 दिनों पर क्राउन रूट इनिशिएशन (CRI), कल्ले फूटने, गांठ बनने, फूल आने और दूधिया अवस्था में 5-6 सिंचाइयों की आवश्यकता होती है।",
+      te: "21 రోజులలో కిరీటం వేరు దశ (CRI), పిలక దశ, గింజ పాలు పోసుకునే దశలలో 5-6 తడులు అవసరం."
+    },
+    fertilizer: {
+      en: "NPK 50:25:12 kg per acre. Top-dress Urea splits before the first and second irrigations.",
+      hi: "NPK 50:25:12 किग्रा प्रति एकड़। पहली और दूसरी सिंचाई से पहले यूरिया का छिड़काव करें।",
+      te: "NPK 50:25:12 కిలోలు ఎకరాకు. మొదటి మరియు రెండవ తడుల ముందు యూరియాను చల్లండి."
+    },
+    pestControl: {
+      en: "Rust diseases: Yellow and brown rust. Spray Propiconazole (25% EC) at 1ml/L if symptoms appear.",
+      hi: "गेरुई रोग: पीला और भूरा गेरुई। लक्षण दिखने पर 1ml/L की दर से प्रोपिकोनाज़ोल (25% EC) का छिड़काव करें।",
+      te: "తుప్పు తెగులు: పసుపు మరియు గోధుమ తుప్పు తెగులు. నివారణకు లీటర్ నీటికి 1ml ప్రొపికోనజోల్ (25% EC) పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Harvest using combine harvesters when grains are hard and dry (straw turns golden yellow and brittle).",
+      hi: "जब दाने सख्त और सूखे हों (पुआल सुनहरा पीला और नाजुक हो जाए) तब कंबाइन हार्वेस्टर से कटाई करें।",
+      te: "గింజలు గట్టిగా మరియు ఎండినప్పుడు (గడ్డి బంగారు రంగులోకి మారి పెళుసుగా మారినప్పుడు) కంబైన్ హార్వెస్టర్లతో కోయండి."
+    }
   },
   Turmeric: {
-    sowing: "Plant mother or finger rhizomes. Seed rate: 1000kg rhizomes per acre. Spacing: 30x15cm on ridges.",
-    landPrep: "Construct ridges (25cm height) to prevent root rotting. Add neem cake at 200kg per acre to repel root nematodes.",
-    irrigation: "Heavy water requirement. Irrigate 15-20 times at 7-10 day intervals. Use straw mulching to conserve moisture.",
-    fertilizer: "NPK 25:25:50 kg per acre. Apply green manure leaves (10t/acre) to enrich humic organic acids.",
-    pestControl: "Rhizome Rot: Drench soil with Metalaxyl-Mancozeb (2g/L). Control leaf rollers using organic bio-pesticides.",
-    harvest: "Dig up rhizomes 7-9 months after planting when leaves dry and turn yellow. Boil and dry rhizomes for polishing."
+    sowing: {
+      en: "Plant mother or finger rhizomes. Seed rate: 1000kg rhizomes per acre. Spacing: 30x15cm on ridges.",
+      hi: "मदर या फिंगर प्रकंद बोएं। बीज दर: 1000 किग्रा प्रकंद प्रति एकड़। मेड़ों पर दूरी: 30x15 सेमी।",
+      te: "తల్లి లేదా కొమ్ము దుంపలను నాటండి. విత్తన మోతాదు: ఎకరాకు 1000 కిలోల దుంపలు. బోదెలపై అంతరం: 30x15 సెం.మీ."
+    },
+    landPrep: {
+      en: "Construct ridges (25cm height) to prevent root rotting. Add neem cake at 200kg per acre to repel root nematodes.",
+      hi: "जड़ सड़न को रोकने के लिए मेड़ (25 सेमी ऊंचाई) बनाएं। जड़ सूत्रकृमि को दूर रखने के लिए प्रति एकड़ 200 किग्रा नीम की खली डालें।",
+      te: "దుంప కుళ్ళు నివారించడానికి 25 సెం.మీ ఎత్తైన బోదెలను వేయండి. వేరు పురుగు నివారణకు ఎకరాకు 200 కిలోల వేపపిండిని వేయండి."
+    },
+    irrigation: {
+      en: "Heavy water requirement. Irrigate 15-20 times at 7-10 day intervals. Use straw mulching to conserve moisture.",
+      hi: "अधिक पानी की आवश्यकता। 7-10 दिनों के अंतराल पर 15-20 बार सिंचाई करें। नमी बनाए रखने के लिए पुआल मल्चिंग का उपयोग करें।",
+      te: "ఎక్కువ నీరు అవసరం. 7-10 రోజుల వ్యవధిలో 15-20 సార్లు నీరు పెట్టండి. తేమను కాపాడటానికి గడ్డి మల్చింగ్ వాడండి."
+    },
+    fertilizer: {
+      en: "NPK 25:25:50 kg per acre. Apply green manure leaves (10t/acre) to enrich humic organic acids.",
+      hi: "NPK 25:25:50 किग्रा प्रति एकड़। ह्यूमिक कार्बनिक अम्ल बढ़ाने के लिए हरी खाद की पत्तियां (10 टन/एकड़) डालें।",
+      te: "NPK 25:25:50 కిలోలు ఎకరాకు. నేలలో సేంద్రీయ ఆమ్లాల పెంపుకు పచ్చిరొట్ట ఎరువులను (ఎకరాకు 10 టన్నులు) వేయండి."
+    },
+    pestControl: {
+      en: "Rhizome Rot: Drench soil with Metalaxyl-Mancozeb (2g/L). Control leaf rollers using organic bio-pesticides.",
+      hi: "प्रकंद सड़न: मेटालैक्सिल-मैंकोज़ेब (2g/L) से मिट्टी का छिड़काव करें। जैविक जैव-कीटनाशकों से पत्ती मोड़क को नियंत्रित करें।",
+      te: "దుంప కుళ్ళు తెగులు: లీటర్ నీటికి 2g మెటాలాక్సిల్-మాంకోజెబ్ కలిపి నేలపై పిచికారీ చేయండి. ఆకు చుట్టు పురుగును బయో-పెస్టిసైడ్లతో నివారించండి."
+    },
+    harvest: {
+      en: "Dig up rhizomes 7-9 months after planting when leaves dry and turn yellow. Boil and dry rhizomes for polishing.",
+      hi: "बोने के 7-9 महीने बाद जब पत्तियां सूख कर पीली हो जाएं तो प्रकंद खोद लें। पॉलिश करने के लिए प्रकंदों को उबालें और सुखाएं।",
+      te: "నాటిన 7-9 నెలల తర్వాత ఆకులు ఎండిపోయి పసుపు రంగులోకి మారినప్పుడు దుంపలను తవ్వండి. వాటిని ఉడకబెట్టి ఎండబెట్టండి."
+    }
   },
   Sugarcane: {
-    sowing: "Plant two-budded setts (30,000 setts per acre) in furrows. Spacing: 120cm between rows.",
-    landPrep: "Deep tractor subsoiling up to 45cm depth. Apply pressmud compost (5 tonnes/acre) to enrich loam soils.",
-    irrigation: "High water footprint. Irrigate every 10-15 days during formative and grand growth phases.",
-    fertilizer: "NPK 110:30:30 kg per acre. Nitrogen splits are crucial: at planting, 30 days, 60 days, and 90 days.",
-    pestControl: "Early Shoot Borer: Release Trichogramma egg parasites (2.5cc/acre). Apply Chlorpyriphos to soil if termites persist.",
-    harvest: "Harvest stalks close to ground level when brix hydrometer index reads 18-20%. Deliver to mills within 24 hours."
+    sowing: {
+      en: "Plant two-budded setts (30,000 setts per acre) in furrows. Spacing: 120cm between rows.",
+      hi: "नालियों में दो-आंखों वाले टुकड़ों (30,000 प्रति एकड़) को बोएं। कतारों के बीच की दूरी: 120 सेमी।",
+      te: "రెండు కన్నుల చెరకు ముక్కలను (ఎకరాకు 30,000 ముక్కలు) కాలువలలో నాటండి. కాలువల మధ్య దూరం: 120 సెం.మీ."
+    },
+    landPrep: {
+      en: "Deep tractor subsoiling up to 45cm depth. Apply pressmud compost (5 tonnes/acre) to enrich loam soils.",
+      hi: "45 सेमी गहराई तक गहरी ट्रैक्टर जुताई करें। दोमट मिट्टी को समृद्ध करने के लिए प्रेसमड कम्पोस्ट (5 टन/एकड़) डालें।",
+      te: "నేలను 45 సెం.మీ లోతు వరకు బాగా దున్నండి. నేల సారవంతం కావడానికి ఎకరాకు 5 టన్నుల ప్రెస్మడ్ కంపోస్ట్ వేయండి."
+    },
+    irrigation: {
+      en: "High water footprint. Irrigate every 10-15 days during formative and grand growth phases.",
+      hi: "पानी की उच्च आवश्यकता। विकास के चरणों के दौरान हर 10-15 दिनों में सिंचाई करें।",
+      te: "ఎక్కువ నీరు అవసరం. పంట ఎదుగుదల దశలలో ప్రతి 10-15 రోజులకు ఒకసారి నీరు పెట్టండి."
+    },
+    fertilizer: {
+      en: "NPK 110:30:30 kg per acre. Nitrogen splits are crucial: at planting, 30 days, 60 days, and 90 days.",
+      hi: "NPK 110:30:30 किग्रा प्रति एकड़। Nitrogen का विभाजन महत्वपूर्ण है: रोपाई के समय, 30 दिन, 60 दिन और 90 दिन पर।",
+      te: "NPK 110:30:30 కిలోలు ఎకరాకు. నత్రజనిని విడతలుగా వేయడం చాలా ముఖ్యం: నాటేటప్పుడు, 30, 60 మరియు 90 రోజులకు."
+    },
+    pestControl: {
+      en: "Early Shoot Borer: Release Trichogramma egg parasites (2.5cc/acre). Apply Chlorpyriphos to soil if termites persist.",
+      hi: "शुरुआती तना छेदक: ट्राइकोग्रामा अंडे परजीवी (2.5cc/एकड़) छोड़ें। यदि दीमक बनी रहती है तो मिट्टी में क्लोरपायरीफॉस डालें।",
+      te: "మొవ్వు తొలిచే పురుగు: నివారణకు ట్రైకోగ్రామా పరాన్నజీవులను విడుదల చేయండి. చెదలు ఉంటే క్లోరిపైరిఫాస్ పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Harvest stalks close to ground level when brix hydrometer index reads 18-20%. Deliver to mills within 24 hours.",
+      hi: "जब ब्रिक्स सूचकांक 18-20% पढ़े तो डंठल को जमीन के स्तर के पास से काटें। 24 घंटे के भीतर मिलों में पहुंचाएं।",
+      te: "షుగర్ రీడింగ్ 18-20% ఉన్నప్పుడు నేల మట్టానికి సమానంగా నరకండి. నరికిన 24 గంటల లోపు మిల్లులకు తరలించండి."
+    }
   },
   Onion: {
-    sowing: "Transplant 6-7 week old seedlings on raised flat beds. Spacing: 15x10cm for high bulb density.",
-    landPrep: "Plough 3 times to get loose, weed-free tilth. Add 10 tonnes compost to ensure bulb enlargement drainage.",
-    irrigation: "Irrigate immediately on transplanting, then at 7-10 day intervals. Stop watering 15 days before harvest.",
-    fertilizer: "NPK 30:20:30 kg per acre. Top-dress Nitrogen in two split doses at 30 and 45 days after transplanting.",
-    pestControl: "Onion Thrips (leaves turn silver/white). Spray Spinosad (0.3ml/L) or apply organic neem soap spray.",
-    harvest: "Harvest when 50% of the crop tops break and collapse (neck-fall). Cure bulbs in shade for 10 days for long storage life."
+    sowing: {
+      en: "Transplant 6-7 week old seedlings on raised flat beds. Spacing: 15x10cm for high bulb density.",
+      hi: "उठी हुई समतल क्यारियों पर 6-7 सप्ताह पुराने पौधों का रोपण करें। दूरी: 15x10 सेमी।",
+      te: "6-7 వారాల వయసున్న నారును ఎత్తైన బెడ్లపై నాటండి. అంతరం: 15x10 సెం.మీ."
+    },
+    landPrep: {
+      en: "Plough 3 times to get loose, weed-free tilth. Add 10 tonnes compost to ensure bulb enlargement drainage.",
+      hi: "ढीली, खरपतवार मुक्त मिट्टी पाने के लिए 3 बार जोतें। कंद बढ़ने और जल निकासी सुनिश्चित करने के लिए 10 टन खाद डालें।",
+      te: "కలుపు లేకుండా నేలను 3 సార్లు బాగా దున్నండి. ఉల్లిగడ్డ సైజు పెరగడానికి 10 టన్నుల సేంద్రీయ ఎరువు వేయండి."
+    },
+    irrigation: {
+      en: "Irrigate immediately on transplanting, then at 7-10 day intervals. Stop watering 15 days before harvest.",
+      hi: "रोपाई के तुरंत बाद सिंचाई करें, फिर 7-10 दिनों के अंतराल पर। कटाई से 15 दिन पहले पानी देना बंद कर दें।",
+      te: "నాటిన వెంటనే నీరు పెట్టండి, ఆ తర్వాత 7-10 రోజుల వ్యవధిలో పెట్టండి. కోతకు 15 రోజుల ముందు నీరు ఆపేయండి."
+    },
+    fertilizer: {
+      en: "NPK 30:20:30 kg per acre. Top-dress Nitrogen in two split doses at 30 and 45 days after transplanting.",
+      hi: "NPK 30:20:30 किग्रा प्रति एकड़। रोपाई के 30 और 45 दिन बाद दो विभाजित खुराकों में नाइट्रोजन का छिड़काव करें।",
+      te: "NPK 30:20:30 కిలోలు ఎకరాకు. నాటిన 30 మరియు 45 రోజులకు నత్రజనిని రెండు విడతలుగా వేయండి."
+    },
+    pestControl: {
+      en: "Onion Thrips (leaves turn silver/white). Spray Spinosad (0.3ml/L) or apply organic neem soap spray.",
+      hi: "प्याज थ्रिप्स (पत्तियां चांदी जैसी सफेद हो जाती हैं)। स्पिनोसैड (0.3ml/L) का छिड़काव करें या जैविक नीम साबुन का उपयोग करें।",
+      te: "తామర పురుగులు (ఆకులు తెల్లగా మారుతాయి): నివారణకు స్పినోసాడ్ (0.3ml/L) లేదా వేప నూనె ద్రావణం పిచికారీ చేయండి."
+    },
+    harvest: {
+      en: "Harvest when 50% of the crop tops break and collapse (neck-fall). Cure bulbs in shade for 10 days for long storage life.",
+      hi: "कटाई तब करें जब 50% पौधों के शीर्ष झुक कर गिर जाएं। लंबे समय तक भंडारण के लिए कंदों को 10 दिनों तक छाया में सुखाएं।",
+      te: "మొక్కల ఆకులు 50% పైగా వాలిపోయినప్పుడు కోయండి. నిల్వ సామర్థ్యం పెరగడానికి ఉల్లిగడ్డలను 10 రోజులు నీడలో ఆరబెట్టండి."
+    }
   }
-};
+}
+
 
 export default function Dashboard() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -2192,54 +2433,54 @@ export default function Dashboard() {
                     <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
                       <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                         <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">1</span>
-                        <span>SOWING & SEEDS</span>
+                        <span>{t("SOWING & SEEDS", "बुवाई और बीज", "విత్తడం & విత్తనాలు")}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.sowing}</p>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{t(playbook.sowing.en, playbook.sowing.hi, playbook.sowing.te)}</p>
                     </div>
 
                     {/* Phase 2 */}
                     <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
                       <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                         <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">2</span>
-                        <span>LAND PREPARATION</span>
+                        <span>{t("LAND PREPARATION", "भूमि की तैयारी", "నేల తయారీ")}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.landPrep}</p>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{t(playbook.landPrep.en, playbook.landPrep.hi, playbook.landPrep.te)}</p>
                     </div>
 
                     {/* Phase 3 */}
                     <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
                       <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                         <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">3</span>
-                        <span>IRRIGATION SCHEDULE</span>
+                        <span>{t("IRRIGATION SCHEDULE", "सिंचाई कार्यक्रम", "నీటి పారుదల షెడ్యూల్")}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.irrigation}</p>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{t(playbook.irrigation.en, playbook.irrigation.hi, playbook.irrigation.te)}</p>
                     </div>
 
                     {/* Phase 4 */}
                     <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
                       <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                         <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">4</span>
-                        <span>FERTILIZERS (NPK)</span>
+                        <span>{t("FERTILIZERS (NPK)", "उर्वरक (NPK)", "ఎరువులు (NPK)")}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.fertilizer}</p>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{t(playbook.fertilizer.en, playbook.fertilizer.hi, playbook.fertilizer.te)}</p>
                     </div>
 
                     {/* Phase 5 */}
                     <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
                       <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                         <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">5</span>
-                        <span>PEST & DISEASE DEFENSE</span>
+                        <span>{t("PEST & DISEASE DEFENSE", "कीट और रोग नियंत्रण", "కీటకాలు & తెగుళ్ల నివారణ")}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.pestControl}</p>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{t(playbook.pestControl.en, playbook.pestControl.hi, playbook.pestControl.te)}</p>
                     </div>
 
                     {/* Phase 6 */}
                     <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
                       <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
                         <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">6</span>
-                        <span>HARVESTING & STORAGE</span>
+                        <span>{t("HARVESTING & STORAGE", "कटाई और भंडारण", "కోత & నిల్వ")}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.harvest}</p>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{t(playbook.harvest.en, playbook.harvest.hi, playbook.harvest.te)}</p>
                     </div>
                   </div>
                 </div>
