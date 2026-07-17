@@ -21,6 +21,7 @@
         <java.version>21</java.version>
         <jjwt.version>0.12.5</jjwt.version>
         <minio.version>8.5.10</minio.version>
+        <lombok.version>1.18.34</lombok.version>
     </properties>
 
     <dependencies>
