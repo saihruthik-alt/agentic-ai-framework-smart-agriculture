@@ -87,7 +87,11 @@ const AVAILABLE_CROPS = [
   { value: "Chilli", labelEn: "Chilli", labelHi: "लाल मिर्च - Lal Mirch", labelTe: "మిరపకాయ - Mirapakaya", label: "Chilli (మిరపకాయ - Mirapakaya)", varieties: ["Guntur Sannam S4", "Teja Chilli", "Byadagi"], baseCostPerAcre: 35000, yieldPerAcreQuintals: 15, marketPricePerQuintal: 19500, durationDays: 150 },
   { value: "Groundnut", labelEn: "Groundnut", labelHi: "मूंगफली - Mungfali", labelTe: "వేరుశనగ - Verusenaga", label: "Groundnut (వేరుశనగ - Verusenaga)", varieties: ["Kadiri 9", "K 6", "TAG 24"], baseCostPerAcre: 15000, yieldPerAcreQuintals: 8, marketPricePerQuintal: 6300, durationDays: 105 },
   { value: "Maize", labelEn: "Maize", labelHi: "मक्का - Makka", labelTe: "మొక్కజొన్న - Mokkajonna", label: "Maize (మొక్కజొన్న - Mokkajonna)", varieties: ["Pioneer 3396", "DHM 117", "Dekalb 9108"], baseCostPerAcre: 12000, yieldPerAcreQuintals: 25, marketPricePerQuintal: 1960, durationDays: 100 },
-  { value: "Tomato", labelEn: "Tomato", labelHi: "टमाटर - Tamatar", labelTe: "టమోటా - Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"], baseCostPerAcre: 25000, yieldPerAcreQuintals: 120, marketPricePerQuintal: 1200, durationDays: 90 }
+  { value: "Tomato", labelEn: "Tomato", labelHi: "टमाटर - Tamatar", labelTe: "టమోటా - Tomato", label: "Tomato (టమోటా - Tomato)", varieties: ["Arka Vikas", "Pusa Ruby", "PKM 1"], baseCostPerAcre: 25000, yieldPerAcreQuintals: 120, marketPricePerQuintal: 1200, durationDays: 90 },
+  { value: "Wheat", labelEn: "Wheat", labelHi: "गेहूं - Gehun", labelTe: "గోధుమలు - Godhumalu", label: "Wheat (గోధుమలు - Godhumalu)", varieties: ["Lok-1", "GW-322", "HD-2967"], baseCostPerAcre: 14000, yieldPerAcreQuintals: 18, marketPricePerQuintal: 2275, durationDays: 110 },
+  { value: "Turmeric", labelEn: "Turmeric", labelHi: "हल्दी - Haldi", labelTe: "పసుపు - Pasupu", label: "Turmeric (పసుపు - Pasupu)", varieties: ["IISR Pragati", "Duggirala", "Tekurpet"], baseCostPerAcre: 40000, yieldPerAcreQuintals: 24, marketPricePerQuintal: 11500, durationDays: 240 },
+  { value: "Sugarcane", labelEn: "Sugarcane", labelHi: "गन्ना - Ganna", labelTe: "చెరకు - Cheraku", label: "Sugarcane (చెరకు - Cheraku)", varieties: ["Co 86032", "Co 0238", "Co 8021"], baseCostPerAcre: 32000, yieldPerAcreQuintals: 350, marketPricePerQuintal: 315, durationDays: 360 },
+  { value: "Onion", labelEn: "Onion", labelHi: "प्याज़ - Pyaaz", labelTe: "ఉల్లిపాయ - Ullipaya", label: "Onion (ఉల్లిపాయ - Ullipaya)", varieties: ["Bhima Super", "Agrifound Dark Red", "N-53"], baseCostPerAcre: 20000, yieldPerAcreQuintals: 85, marketPricePerQuintal: 1800, durationDays: 110 }
 ];
 
 const LEAF_DISEASE_DATA: Record<string, { diseaseName: string; localName: string; medicine: string; dosage: string; tips: string[] }> = {
@@ -123,6 +127,96 @@ const LEAF_DISEASE_DATA: Record<string, { diseaseName: string; localName: string
       "Remove volunteer plants: Pull out wild cotton varieties that act as spore reservoirs.",
       "Irrigate early: Apply water early morning so leaves dry quickly in daylight."
     ]
+  }
+};
+
+const CROP_CULTIVATION_PLAYBOOKS: Record<string, {
+  sowing: string;
+  landPrep: string;
+  irrigation: string;
+  fertilizer: string;
+  pestControl: string;
+  harvest: string;
+}> = {
+  Rice: {
+    sowing: "Nursery sowing: Use 20kg certified seeds per acre. Soak in Carbendazim solution for 24h before broadcasting. Transplant seedlings at 21-25 days maturity.",
+    landPrep: "Puddling: Plough field 2-3 times, flood with 5-10cm water. Apply 10 tonnes of organic farmyard manure (FYM) per acre to improve clay soil cohesion.",
+    irrigation: "Keep 2-5cm standing water level constantly during vegetative stages. Drain field 10-14 days before harvesting.",
+    fertilizer: "Basal: NPK 20:20:20 (50kg/acre). Top-dressing: Urea (Nitrogen) at 30 days (30kg) and 60 days (20kg) during panicle initiation.",
+    pestControl: "Monitor Stem Borer (Spindle spots). Apply Cartap Hydrochloride (4G) at 10kg/acre if damage exceeds 10% threshold.",
+    harvest: "Cut stalks when 90% panicles turn golden brown. Dry grains under sunlight until moisture dips below 14% to prevent mandi spoilage."
+  },
+  Cotton: {
+    sowing: "Direct seeding: Plant seeds at 3-4cm depth with 90x60cm spacing. Use 1.5-2.0kg Bt Hybrid seeds per acre.",
+    landPrep: "Deep plowing: Work the soil 2-3 times using tractor cultivators. Construct ridges and furrows to prevent root waterlogging.",
+    irrigation: "Moderate requirement. Irrigate at critical phases: flowering and boll development. Avoid standing water.",
+    fertilizer: "NPK ratios: 60:30:30 kg per acre. Apply Nitrogen in three split doses: at sowing, 30 days, and 60 days.",
+    pestControl: "Pink Bollworm vigilance: Use pheromone traps (5/acre). Spray Neem Oil (1500ppm) or Spinosad if boll damage occurs.",
+    harvest: "Hand-pick clean cotton from fully opened bolls only. Avoid picking dew-moist cotton to maintain high fiber quality grade."
+  },
+  Chilli: {
+    sowing: "Nursery raising: Sown in December. Transplant healthy seedlings at 5-6 weeks age. Spacing: 60x45cm.",
+    landPrep: "Fine tilth: Incorporate 12 tonnes FYM per acre. Build raised beds with plastic mulching sheets to check weed growth.",
+    irrigation: "Drip irrigation highly recommended. Keep soil moist but never saturated. Irrigate every 4-7 days depending on temperature.",
+    fertilizer: "NPK 120:60:60 kg per acre. Apply Phosphatic fertilizers fully as basal, Nitrogen & Potash in 4 split doses.",
+    pestControl: "Thrips & Mites: Spray Fipronil 5% SC (2.0ml/L) or organic Garlic-Chilli extract spray to check leaf curling.",
+    harvest: "Pick fully ripe red fruits for dry chilli index. Pick green chillies at 10-day intervals for fresh vegetable mandis."
+  },
+  Groundnut: {
+    sowing: "Shell pods 1-2 days before sowing. Seed rate: 45kg kernels per acre. Spacing: 30x10cm.",
+    landPrep: "Plough 2 times to get loose sandy loam texture. Apply Gypsum at 200kg per acre during pegging to boost pod density.",
+    irrigation: "Requires 4-6 irrigations. Critical phases are flowering, pegging, and pod formation. Avoid water stress at pegging.",
+    fertilizer: "NPK 10:20:30 kg per acre. Gypsum application is critical to supply Calcium and Sulphur for oil production.",
+    pestControl: "Red Hairy Caterpillar & Tikka leaf spot. Apply Carbendazim (1g/L) for leaf spot control.",
+    harvest: "Pull plants when leaves turn yellow and inner shells turn blackish. Dry vines in field for 3 days before stripping pods."
+  },
+  Maize: {
+    sowing: "Dibble seeds at 5cm depth. Seed rate: 8kg per acre. Spacing: 60x20cm for optimal leaf aeration.",
+    landPrep: "Deep tilling: Plough field 2-3 times. Apply 8 tonnes of compost/manure to enrich organic carbon content.",
+    irrigation: "Irrigate immediately after sowing. Maintain steady soil moisture during tasseling and silking stages.",
+    fertilizer: "NPK 48:24:20 kg per acre. Apply full Phosphorus & Potassium basal, Nitrogen split at knee-high and tasseling stages.",
+    pestControl: "Fall Armyworm: Inspect leaf whorls. Apply Chlorantraniliprole (18.5% SC) at 0.4ml per Litre of water.",
+    harvest: "Harvest when cob sheaths turn paper dry and black layer forms at the grain base. Grain moisture should be 15-18%."
+  },
+  Tomato: {
+    sowing: "Raise in plug-trays. Transplant at 25-30 days with 60x45cm spacing on raised beds with staking supports.",
+    landPrep: "Chisel ploughing: Mix 10 tonnes FYM and Trichoderma bio-fungicide to prevent soil-borne damping off diseases.",
+    irrigation: "Provide drip irrigation daily (2-3 Litres per plant). Avoid overhead spraying to control fungal blights.",
+    fertilizer: "NPK 60:80:60 kg per acre. Supplement with Calcium Nitrate to prevent blossom end rot in ripening fruits.",
+    pestControl: "Fruit Borer: Plant marigold trap crops. Spray Neem oil or Bacillus thuringiensis (Bt) formulation.",
+    harvest: "Harvest at 'breaker stage' (pink blush) for long-distance transport. Harvest fully red for local processing mandis."
+  },
+  Wheat: {
+    sowing: "Sowing time: November. Seed rate: 40kg per acre. Spacing: 22.5cm rows using seed-drill machinery.",
+    landPrep: "Prepare field to fine tilth. Ensure field levelness to prevent water pooling in low-lying spots.",
+    irrigation: "Requires 5-6 irrigations at Crown Root Initiation (CRI) at 21 days, tillering, jointing, flowering, and milk stages.",
+    fertilizer: "NPK 50:25:12 kg per acre. Top-dress Urea splits before the first and second irrigations.",
+    pestControl: "Rust diseases: Yellow and brown rust. Spray Propiconazole (25% EC) at 1ml/L if symptoms appear.",
+    harvest: "Harvest using combine harvesters when grains are hard and dry (straw turns golden yellow and brittle)."
+  },
+  Turmeric: {
+    sowing: "Plant mother or finger rhizomes. Seed rate: 1000kg rhizomes per acre. Spacing: 30x15cm on ridges.",
+    landPrep: "Construct ridges (25cm height) to prevent root rotting. Add neem cake at 200kg per acre to repel root nematodes.",
+    irrigation: "Heavy water requirement. Irrigate 15-20 times at 7-10 day intervals. Use straw mulching to conserve moisture.",
+    fertilizer: "NPK 25:25:50 kg per acre. Apply green manure leaves (10t/acre) to enrich humic organic acids.",
+    pestControl: "Rhizome Rot: Drench soil with Metalaxyl-Mancozeb (2g/L). Control leaf rollers using organic bio-pesticides.",
+    harvest: "Dig up rhizomes 7-9 months after planting when leaves dry and turn yellow. Boil and dry rhizomes for polishing."
+  },
+  Sugarcane: {
+    sowing: "Plant two-budded setts (30,000 setts per acre) in furrows. Spacing: 120cm between rows.",
+    landPrep: "Deep tractor subsoiling up to 45cm depth. Apply pressmud compost (5 tonnes/acre) to enrich loam soils.",
+    irrigation: "High water footprint. Irrigate every 10-15 days during formative and grand growth phases.",
+    fertilizer: "NPK 110:30:30 kg per acre. Nitrogen splits are crucial: at planting, 30 days, 60 days, and 90 days.",
+    pestControl: "Early Shoot Borer: Release Trichogramma egg parasites (2.5cc/acre). Apply Chlorpyriphos to soil if termites persist.",
+    harvest: "Harvest stalks close to ground level when brix hydrometer index reads 18-20%. Deliver to mills within 24 hours."
+  },
+  Onion: {
+    sowing: "Transplant 6-7 week old seedlings on raised flat beds. Spacing: 15x10cm for high bulb density.",
+    landPrep: "Plough 3 times to get loose, weed-free tilth. Add 10 tonnes compost to ensure bulb enlargement drainage.",
+    irrigation: "Irrigate immediately on transplanting, then at 7-10 day intervals. Stop watering 15 days before harvest.",
+    fertilizer: "NPK 30:20:30 kg per acre. Top-dress Nitrogen in two split doses at 30 and 45 days after transplanting.",
+    pestControl: "Onion Thrips (leaves turn silver/white). Spray Spinosad (0.3ml/L) or apply organic neem soap spray.",
+    harvest: "Harvest when 50% of the crop tops break and collapse (neck-fall). Cure bulbs in shade for 10 days for long storage life."
   }
 };
 
@@ -185,6 +279,10 @@ export default function Dashboard() {
     if (language === "te") return `${english} (${telugu})`;
     return english;
   };
+
+  // Market Analysis search & Guide Playbook States
+  const [mandiSearchQuery, setMandiSearchQuery] = useState("");
+  const [activePlaybookCropIdx, setActivePlaybookCropIdx] = useState(0);
 
   // Change Password state
   const [newPassword, setNewPassword] = useState("");
@@ -1977,42 +2075,167 @@ export default function Dashboard() {
           )}
 
           {/* TAB 5: MARKET PRICE ANALYTICS */}
-          {activeTab === "market" && (
-            <div className="space-y-6">
-              {/* Header */}
-              <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
-                <h3 className="text-lg font-bold text-zinc-200 mb-2">📈 Mandi Rates Index (Rupees ₹)</h3>
-                <p className="text-sm text-zinc-500">
-                  Wholesale price indices scraped directly matching rates in Guntur, Hyderabad, and Warangal mandis.
-                </p>
-              </div>
+          {activeTab === "market" && (() => {
+            const filteredCrops = AVAILABLE_CROPS.filter((c) => {
+              const q = mandiSearchQuery.toLowerCase();
+              return (
+                c.labelEn.toLowerCase().includes(q) ||
+                c.labelHi.toLowerCase().includes(q) ||
+                c.labelTe.toLowerCase().includes(q) ||
+                c.value.toLowerCase().includes(q)
+              );
+            });
+            
+            const currentPlaybookCrop = AVAILABLE_CROPS[activePlaybookCropIdx];
+            const playbook = CROP_CULTIVATION_PLAYBOOKS[currentPlaybookCrop?.value] || CROP_CULTIVATION_PLAYBOOKS["Rice"];
 
-              {/* Indian Mandi Price Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {AVAILABLE_CROPS.map((crop, idx) => (
-                  <div key={idx} className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t(crop.labelEn, crop.labelHi, crop.labelTe)}</span>
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/30">
-                        ₹{(crop.marketPricePerQuintal / 100).toFixed(2)}/kg equivalent
-                      </span>
-                    </div>
-                    <h4 className="text-4xl font-extrabold text-zinc-100">
-                      ₹{crop.marketPricePerQuintal.toLocaleString()}{" "}
-                      <span className="text-xs font-normal text-zinc-500">/ Quintal</span>
-                    </h4>
-                    <p className="text-xs text-zinc-400 leading-relaxed">
-                      Projected Mandi Rates for {crop.value}. Expected average yield of {crop.yieldPerAcreQuintals} Quintals per acre based on {REALISTIC_LOCATIONS[activeLocationIndex].defaultSoil} soil profiles.
+            return (
+              <div className="space-y-8">
+                {/* Header & Search */}
+                <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold text-zinc-200">📈 Mandi Rates Index & Search</h3>
+                    <p className="text-xs text-zinc-500">
+                      Wholesale price indices scraped directly matching rates in Guntur, Hyderabad, and Warangal mandis.
                     </p>
-                    <div className="pt-2 flex justify-between items-center text-[10px] text-zinc-500 border-t border-zinc-850">
-                      <span>Standard Cost: ₹{crop.baseCostPerAcre.toLocaleString()} / acre</span>
-                      <span className="text-emerald-400 font-bold">Sentiment: STABLE</span>
+                  </div>
+                  
+                  {/* Search Bar */}
+                  <div className="relative w-full md:w-80">
+                    <input
+                      type="text"
+                      value={mandiSearchQuery}
+                      onChange={(e) => setMandiSearchQuery(e.target.value)}
+                      placeholder="🔍 Search crops by name (English / తెలుగు / हिंदी)..."
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-650 focus:border-emerald-500 focus:outline-none"
+                    />
+                    {mandiSearchQuery && (
+                      <button
+                        onClick={() => setMandiSearchQuery("")}
+                        className="absolute right-3.5 top-2.5 text-zinc-550 hover:text-zinc-300 text-xs"
+                      >
+                        ✖
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mandi Cards List */}
+                {filteredCrops.length === 0 ? (
+                  <div className="border border-dashed border-zinc-850 rounded-2xl py-12 text-center text-xs text-zinc-550 bg-zinc-950/20">
+                    No crops match your search query. Try searching for "Rice", "పసుపు" or "टमाटर".
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredCrops.map((crop, idx) => (
+                      <div key={idx} className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t(crop.labelEn, crop.labelHi, crop.labelTe)}</span>
+                          <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/30">
+                            ₹{(crop.marketPricePerQuintal / 100).toFixed(2)}/kg equivalent
+                          </span>
+                        </div>
+                        <h4 className="text-4xl font-extrabold text-zinc-100">
+                          ₹{crop.marketPricePerQuintal.toLocaleString()}{" "}
+                          <span className="text-xs font-normal text-zinc-500">/ Quintal</span>
+                        </h4>
+                        <p className="text-xs text-zinc-400 leading-relaxed">
+                          Projected Mandi Rates for {t(crop.labelEn, crop.labelHi, crop.labelTe)}. Expected average yield of {crop.yieldPerAcreQuintals} Quintals per acre based on local soil profiles.
+                        </p>
+                        <div className="pt-2 flex justify-between items-center text-[10px] text-zinc-500 border-t border-zinc-850">
+                          <span>Standard Cost: ₹{crop.baseCostPerAcre.toLocaleString()} / acre</span>
+                          <span className="text-emerald-400 font-bold">Sentiment: STABLE</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Cultivation Guides Playbook */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/40 rounded-3xl p-8 space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-850 pb-5">
+                    <div>
+                      <h3 className="text-md font-bold text-zinc-200">🌾 Dynamic Crop Cultivation Playbook (Seed to Mandi)</h3>
+                      <p className="text-xs text-zinc-550">Full detailed guidelines for cultivation stages from beginning sowing to harvest.</p>
+                    </div>
+                    
+                    {/* Select Crop Playbook Dropdown */}
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xs text-zinc-450 font-medium">Select Crop:</span>
+                      <select
+                        value={activePlaybookCropIdx}
+                        onChange={(e) => setActivePlaybookCropIdx(parseInt(e.target.value))}
+                        className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-xs text-zinc-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                      >
+                        {AVAILABLE_CROPS.map((c, i) => (
+                          <option key={i} value={i}>
+                            {t(c.labelEn, c.labelHi, c.labelTe)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                ))}
+
+                  {/* Playbook Stage Timeline */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Phase 1 */}
+                    <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                        <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">1</span>
+                        <span>SOWING & SEEDS</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.sowing}</p>
+                    </div>
+
+                    {/* Phase 2 */}
+                    <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                        <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">2</span>
+                        <span>LAND PREPARATION</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.landPrep}</p>
+                    </div>
+
+                    {/* Phase 3 */}
+                    <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                        <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">3</span>
+                        <span>IRRIGATION SCHEDULE</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.irrigation}</p>
+                    </div>
+
+                    {/* Phase 4 */}
+                    <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                        <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">4</span>
+                        <span>FERTILIZERS (NPK)</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.fertilizer}</p>
+                    </div>
+
+                    {/* Phase 5 */}
+                    <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                        <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">5</span>
+                        <span>PEST & DISEASE DEFENSE</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.pestControl}</p>
+                    </div>
+
+                    {/* Phase 6 */}
+                    <div className="border border-zinc-850 bg-zinc-950/40 p-5 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                        <span className="h-5 w-5 rounded-full bg-emerald-950 border border-emerald-800/30 flex items-center justify-center text-[10px]">6</span>
+                        <span>HARVESTING & STORAGE</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">{playbook.harvest}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* TAB 6: USER PROFILE & PASSWORD CHANGE */}
           {activeTab === "profile" && (
