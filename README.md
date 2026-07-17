@@ -69,6 +69,42 @@ npm run dev
 
 ---
 
+### Option C: Development in GitHub Codespaces
+If you are developing inside a GitHub Codespace, you can run all services in dev/watch mode with hot-reloading using 4 separate terminal tabs:
+
+#### Tab 1: Database Containers
+Start the DB services in the background:
+```bash
+docker compose up -d postgres redis minio
+```
+
+#### Tab 2: Core Spring Boot API
+Navigate to core directory and run Spring boot:
+```bash
+cd backend-core
+mvn spring-boot:run
+```
+
+#### Tab 3: FastAPI AI Orchestrator
+Setup virtualenv, install dependencies, and run:
+```bash
+cd backend-ai
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --port 8000
+```
+
+#### Tab 4: Next.js Frontend
+Install packages and boot dev server:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
 ## 🧪 Diagnostics & Diagnostics Checks
 
 To run diagnostic integration checks to verify database connectivity and JWT endpoints, run:
