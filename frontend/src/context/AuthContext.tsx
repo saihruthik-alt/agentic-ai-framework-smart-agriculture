@@ -24,29 +24,40 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserSession | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    // Restore session on client load
-    const savedToken = getCookie("token");
-    const savedUser = localStorage.getItem("user_profile");
+  const logout = () => {
+    eraseCookie("token");
+    localStorage.removeItem("user_profile");
+    setUser(null);
+    router.push("/login");
+  };
 
-    if (savedToken && savedUser) {
-      try {
-        const parsedProfile = JSON.parse(savedUser);
-        setUser({
-          ...parsedProfile,
-          token: savedToken
-        });
-      } catch (e) {
-        // Corrupted profile data, clean up
-        logout();
+  const [user, setUser] = useState<UserSession | null>(() => {
+    if (typeof window !== "undefined") {
+      const savedToken = getCookie("token");
+      const savedUser = localStorage.getItem("user_profile");
+      if (savedToken && savedUser) {
+        try {
+          const parsedProfile = JSON.parse(savedUser);
+          return {
+            ...parsedProfile,
+            token: savedToken
+          };
+        } catch {
+          eraseCookie("token");
+          localStorage.removeItem("user_profile");
+          return null;
+        }
       }
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return false;
+  });
 
   const login = async (username: string, password: string) => {
     setLoading(true);
@@ -59,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           body: JSON.stringify({ username, password })
         });
       } catch (err) {
-        throw new Error("Could not connect to the backend authentication server. Please ensure that your Spring Boot service is active on port 8080.");
+        throw new Error("Could not connect to the backend authentication server. Please ensure that your Spring Boot service is active on port 8080. " + String(err));
       }
 
       const data = await response.json().catch(() => ({}));
@@ -103,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           body: JSON.stringify({ username, email, password, role })
         });
       } catch (err) {
-        throw new Error("Could not connect to the backend authentication server. Please ensure that your Spring Boot service is active on port 8080.");
+        throw new Error("Could not connect to the backend authentication server. Please ensure that your Spring Boot service is active on port 8080. " + String(err));
       }
 
       const data = await response.json().catch(() => ({}));
@@ -134,13 +145,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       throw error;
     }
-  };
-
-  const logout = () => {
-    eraseCookie("token");
-    localStorage.removeItem("user_profile");
-    setUser(null);
-    router.push("/login");
   };
 
   return (

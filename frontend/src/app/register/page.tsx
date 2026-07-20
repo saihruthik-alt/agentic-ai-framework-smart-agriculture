@@ -20,8 +20,9 @@ export default function RegisterPage() {
 
     try {
       await register(username, email, password, role);
-    } catch (err: any) {
-      setError(err.message || "Failed to register account.");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Failed to register account.";
+      setError(errMsg);
       setLoading(false);
     }
   };

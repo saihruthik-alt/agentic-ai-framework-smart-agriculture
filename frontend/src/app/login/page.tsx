@@ -18,8 +18,9 @@ export default function LoginPage() {
 
     try {
       await login(username, password);
-    } catch (err: any) {
-      setError(err.message || "Failed to login. Check your credentials.");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Failed to login. Check your credentials.";
+      setError(errMsg);
       setLoading(false);
     }
   };
@@ -107,7 +108,7 @@ export default function LoginPage() {
 
         <div className="text-center pt-2">
           <p className="text-xs text-zinc-500">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/register" className="font-semibold text-emerald-400 hover:text-emerald-300">
               Register here
             </Link>

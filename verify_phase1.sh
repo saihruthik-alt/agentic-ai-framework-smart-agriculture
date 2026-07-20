@@ -21,8 +21,7 @@ cd ..
 # 2. Starting FastAPI AI Orchestrator service
 echo "Starting FastAPI AI Orchestrator (SQLite fallback mode)..."
 cd backend-ai
-source venv/bin/activate
-uvicorn app.main:app --port ${AI_PORT} > fastapi.log 2>&1 &
+venv/bin/python -m uvicorn app.main:app --port ${AI_PORT} > fastapi.log 2>&1 &
 AI_PID=$!
 cd ..
 

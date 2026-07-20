@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -68,6 +68,16 @@ interface Crop {
   plantedAt: string;
   harvestPlannedAt: string;
   status: string;
+}
+
+interface TelemetryRecord {
+  id: number;
+  recordedAt: string;
+  soilMoisture: number;
+  soilTemp: number;
+  npkNitrogen: number;
+  npkPhosphorus: number;
+  npkPotassium: number;
 }
 
 // Realistic locations in AP & Telangana with soil characteristics (Added Hyderabad as priority)
@@ -475,7 +485,7 @@ export default function Dashboard() {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [crops, setCrops] = useState<Crop[]>([]);
-  const [telemetryHistory, setTelemetryHistory] = useState<any[]>([]);
+  const [telemetryHistory, setTelemetryHistory] = useState<TelemetryRecord[]>([]);
   const [loadingFarms, setLoadingFarms] = useState(false);
   const [loadingCrops, setLoadingCrops] = useState(false);
 
@@ -510,7 +520,10 @@ export default function Dashboard() {
     if (newCropPlanted && targetCrop) {
       const date = new Date(newCropPlanted);
       date.setDate(date.getDate() + targetCrop.durationDays);
-      setNewCropHarvest(date.toISOString().split("T")[0]);
+      const harvestDateStr = date.toISOString().split("T")[0];
+      setTimeout(() => {
+        setNewCropHarvest(harvestDateStr);
+      }, 0);
     }
   }, [newCropIndex, newCropPlanted]);
 
@@ -591,7 +604,9 @@ export default function Dashboard() {
       console.log("WebSocket closed");
     };
 
-    setSocket(ws);
+    setTimeout(() => {
+      setSocket(ws);
+    }, 0);
     return () => {
       ws.close();
     };
@@ -769,7 +784,7 @@ export default function Dashboard() {
       }
       if (res.ok) {
         const data = await res.json();
-        const parsed = data.map((f: any) => {
+        const parsed = data.map((f: Farm) => {
           const locName = localStorage.getItem(`farm_loc_${f.id}`) || "Hyderabad (Red Clay Loam)";
           const unit = localStorage.getItem(`farm_unit_${f.id}`) || "acres";
           return {
@@ -790,7 +805,7 @@ export default function Dashboard() {
   };
 
   // Fetch Crops
-  const fetchCrops = async (farmId: string) => {
+  const fetchCrops = useCallback(async (farmId: string) => {
     if (!user) return;
     setLoadingCrops(true);
     try {
@@ -811,55 +826,64 @@ export default function Dashboard() {
       console.error("Error fetching crops", e);
     }
     setLoadingCrops(false);
-  };
+  }, [user, logout]);
 
-  const fetchTelemetry = async (farmId: string) => {
+  const fetchTelemetry = useCallback(async (farmId: string) => {
     if (!user) return;
-    try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry/latest`, {
-        headers: {
-          "Authorization": `Bearer ${user.token}`
+    const load = async () => {
+      try {
+        const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry/latest`, {
+          headers: {
+            "Authorization": `Bearer ${user.token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTelemetryHistory(data);
+          if (data.length > 0) {
+            const latest = data[0];
+            setAlphaMoisture(latest.soilMoisture !== null ? Number(latest.soilMoisture) : 38);
+            setNitrogenLevel(latest.npkNitrogen !== null ? Number(latest.npkNitrogen) : 14);
+          } else {
+            const seedPayload = {
+              soilMoisture: alphaMoisture,
+              soilTemp: 32,
+              npkNitrogen: nitrogenLevel,
+              npkPhosphorus: phosphorusLevel,
+              npkPotassium: 20,
+              recordedAt: new Date().toISOString()
+            };
+            
+            await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${user.token}`
+              },
+              body: JSON.stringify(seedPayload)
+            });
+            load();
+          }
         }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTelemetryHistory(data);
-        if (data.length > 0) {
-          const latest = data[0];
-          setAlphaMoisture(latest.soilMoisture !== null ? Number(latest.soilMoisture) : 38);
-          setNitrogenLevel(latest.npkNitrogen !== null ? Number(latest.npkNitrogen) : 14);
-        } else {
-          // If no logs, seed database with default telemetry logs to trigger charts
-          const seedPayload = {
-            soilMoisture: alphaMoisture,
-            soilTemp: 32,
-            npkNitrogen: nitrogenLevel,
-            npkPhosphorus: phosphorusLevel,
-            npkPotassium: 20,
-            recordedAt: new Date().toISOString()
-          };
-          
-          await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${user.token}`
-            },
-            body: JSON.stringify(seedPayload)
-          });
-          fetchTelemetry(farmId);
-        }
+      } catch (e) {
+        console.error("Error fetching telemetry logs:", e);
       }
-    } catch (e) {
-      console.error("Error fetching telemetry logs:", e);
+    };
+    load();
+  }, [user, alphaMoisture, nitrogenLevel, phosphorusLevel]);
+
+  useEffect(() => {
+    if (selectedFarm) {
+      const fid = selectedFarm.id;
+      setTimeout(() => {
+        fetchTelemetry(fid);
+        fetchCrops(fid);
+      }, 0);
     }
-  };
+  }, [selectedFarm?.id, fetchTelemetry, fetchCrops]);
 
   useEffect(() => {
     if (!selectedFarm || !user) return;
-    
-    fetchTelemetry(selectedFarm.id);
-    fetchCrops(selectedFarm.id);
 
     const interval = setInterval(async () => {
       const delta = (Math.random() - 0.5) * 2;
@@ -902,7 +926,7 @@ export default function Dashboard() {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [selectedFarm, user]);
+  }, [selectedFarm, user, fetchTelemetry, fetchCrops, alphaMoisture, nitrogenLevel, phosphorusLevel]);
 
   const handleExportReport = async () => {
     if (!user || !selectedFarm) return;
@@ -926,7 +950,7 @@ Compiled At: ${new Date(report.compiledAt).toLocaleString()}
 
 PLANTED CROPS LIST
 ------------------
-${report.crops.length === 0 ? "No active crops planted." : report.crops.map((c: any) => `
+${report.crops.length === 0 ? "No active crops planted." : report.crops.map((c: { cropId: string; name: string; variety: string; status: string; plantedAt: string; harvestPlannedAt: string; }) => `
 - Crop ID: ${c.cropId}
   Name: ${c.name}
   Variety: ${c.variety}
@@ -1364,11 +1388,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
 
   const { recommended: recommendedCrop, rationale: cropRationale, season: cropSeason } = predictRecommendedCrop();
 
-  useEffect(() => {
-    if (user) {
-      setAlphaMoisture(REALISTIC_LOCATIONS[activeLocationIndex].moistureDefault);
-    }
-  }, [activeLocationIndex]);
+
 
   const copyTokenToClipboard = () => {
     if (user) {
@@ -1503,7 +1523,11 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               <span className="text-zinc-550">{t("Active Location", "सक्रिय स्थान", "క్రియాశీల స్థానం")}:</span>
               <select
                 value={activeLocationIndex}
-                onChange={(e) => setActiveLocationIndex(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const idx = parseInt(e.target.value);
+                  setActiveLocationIndex(idx);
+                  setAlphaMoisture(REALISTIC_LOCATIONS[idx].moistureDefault);
+                }}
                 className="bg-transparent text-emerald-400 font-bold focus:outline-none cursor-pointer"
               >
                 {REALISTIC_LOCATIONS.map((loc, i) => (
@@ -2609,7 +2633,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                           <td colSpan={6} className="p-4 text-center text-zinc-650">No logs found in DB yet. Waiting for telemetry loop...</td>
                         </tr>
                       ) : (
-                        telemetryHistory.map((log: any) => (
+                        telemetryHistory.map((log: TelemetryRecord) => (
                           <tr key={log.id} className="hover:bg-zinc-950/20">
                             <td className="p-3 font-mono text-zinc-400">{new Date(log.recordedAt).toLocaleString()}</td>
                             <td className={`p-3 font-bold ${log.soilMoisture < 30 ? "text-rose-400" : "text-emerald-400"}`}>{log.soilMoisture}%</td>
@@ -2676,7 +2700,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                 {/* Mandi Cards List */}
                 {filteredCrops.length === 0 ? (
                   <div className="border border-dashed border-zinc-850 rounded-2xl py-12 text-center text-xs text-zinc-550 bg-zinc-950/20">
-                    No crops match your search query. Try searching for "Rice", "పసుపు" or "टमाटर".
+                    No crops match your search query. Try searching for &quot;Rice&quot;, &quot;పసుపు&quot; or &quot;टमाटर&quot;.
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
