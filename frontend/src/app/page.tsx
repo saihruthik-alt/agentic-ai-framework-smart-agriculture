@@ -904,6 +904,67 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [selectedFarm, user]);
 
+  const handleExportReport = async () => {
+    if (!user || !selectedFarm) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/report`, {
+        headers: {
+          "Authorization": `Bearer ${user.token}`
+        }
+      });
+      if (res.ok) {
+        const report = await res.json();
+        const reportText = `
+SMART AGRICULTURE PLATFORM - DETAILED FARM REPORT
+=================================================
+Farm Name: ${report.farmName}
+Farm ID: ${report.farmId}
+Soil Classification: ${report.soilType}
+Total Acreage: ${report.totalAreaHectares} Hectares
+Coordinates: Lat ${report.latitude}, Lon ${report.longitude}
+Compiled At: ${new Date(report.compiledAt).toLocaleString()}
+
+PLANTED CROPS LIST
+------------------
+${report.crops.length === 0 ? "No active crops planted." : report.crops.map((c: any) => `
+- Crop ID: ${c.cropId}
+  Name: ${c.name}
+  Variety: ${c.variety}
+  Status: ${c.status}
+  Planted At: ${c.plantedAt}
+  Harvest Timeline: ${c.harvestPlannedAt}
+`).join("\n")}
+
+LATEST DATABASE TELEMETRY RECORDS
+---------------------------------
+${!report.latestTelemetry ? "No sensor logs captured in database." : `
+- Last Recorded At: ${new Date(report.latestTelemetry.lastRecordedAt).toLocaleString()}
+  Soil Moisture: ${report.latestTelemetry.soilMoisture}%
+  Soil Temperature: ${report.latestTelemetry.soilTemp}°C
+  Nitrogen (N): ${report.latestTelemetry.npkNitrogen} mg/kg
+  Phosphorus (P): ${report.latestTelemetry.npkPhosphorus} mg/kg
+  Potassium (K): ${report.latestTelemetry.npkPotassium} mg/kg
+`}
+=================================================
+`;
+        const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${report.farmName.split(" ").join("_")}_analytics_report.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        alert("Failed to compile farm analytics report.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error compiling report from Core API.");
+    }
+  };
+
   // Create Farm
   const handleCreateFarm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1132,7 +1193,9 @@ export default function Dashboard() {
         moisture: alphaMoisture,
         temperature: 32,
         humidity: 62,
-        nitrogen: nitrogenLevel
+        nitrogen: nitrogenLevel,
+        latitude: REALISTIC_LOCATIONS[activeLocationIndex].latitude,
+        longitude: REALISTIC_LOCATIONS[activeLocationIndex].longitude
       }
     };
 
@@ -2423,16 +2486,24 @@ export default function Dashboard() {
                     Active measurements synced with: <span className="text-emerald-400 font-bold">{REALISTIC_LOCATIONS[activeLocationIndex].name}</span>
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setAlphaMoisture(REALISTIC_LOCATIONS[activeLocationIndex].moistureDefault);
-                    setBetaMoisture(41);
-                    setNitrogenLevel(14);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Reset Telemetry
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleExportReport}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    📥 Export Farm Report
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAlphaMoisture(REALISTIC_LOCATIONS[activeLocationIndex].moistureDefault);
+                      setBetaMoisture(41);
+                      setNitrogenLevel(14);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Reset Telemetry
+                  </button>
+                </div>
               </div>
 
               {/* Grid data */}
