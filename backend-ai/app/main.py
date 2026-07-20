@@ -9,11 +9,24 @@ from app.config import settings
 from app.database import init_db, get_db
 from app.api.websocket import router as ws_router
 from app.api.disease import router as cv_router
+from app.api.rag import router as rag_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup tasks
     init_db()
+    
+    # Auto-ingest manuals on startup for local SQLite development
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        from app.rag.vector_service import ingest_crop_manuals
+        ingest_crop_manuals(db)
+    except Exception as e:
+        print(f"Startup manuals ingestion failed: {e}")
+    finally:
+        db.close()
+        
     yield
     # Shutdown tasks (if any)
 
@@ -26,6 +39,7 @@ app = FastAPI(
 # Register routers
 app.include_router(ws_router, prefix=settings.API_V1_STR)
 app.include_router(cv_router, prefix=settings.API_V1_STR)
+app.include_router(rag_router, prefix=settings.API_V1_STR)
 
 # Set all CORS enabled origins
 app.add_middleware(

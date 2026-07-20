@@ -1,6 +1,8 @@
 from typing import Dict, List, TypedDict, Annotated
 import operator
 from langgraph.graph import StateGraph, END
+from app.database import SessionLocal
+from app.rag.vector_service import search_crop_manuals
 
 # Define Agent state schema
 class AgentState(TypedDict):
@@ -23,15 +25,28 @@ def weather_node(state: AgentState) -> Dict:
         "decisions": {"weather_forecast": "WARM_DRY"}
     }
 
-# Node 2: Irrigation agent node
+# Node 2: Irrigation agent node with RAG integration
 def irrigation_node(state: AgentState) -> Dict:
     messages = ["System: Irrigation Agent calculating water windows..."]
     moisture = state["telemetry"].get("moisture", 30)
     weather = state["decisions"].get("weather_forecast", "WARM_DRY")
+    crop = state.get("crop", "Rice")
     
-    decision = "Irrigation Agent: Optimal moisture profile. Drip schedules deferred."
+    # Query vector store manual
+    manual_guide = ""
+    db = SessionLocal()
+    try:
+        rag_hits = search_crop_manuals(db, crop, "irrigation schedule", limit=1)
+        if rag_hits:
+            manual_guide = f"\n[RAG Manual: {rag_hits[0]['content']}]"
+    except Exception as e:
+        manual_guide = f"\n[RAG Lookup Failed: {e}]"
+    finally:
+        db.close()
+        
+    decision = f"Irrigation Agent: Optimal moisture profile. Drip schedules deferred.{manual_guide}"
     if moisture < 35 or weather == "WARM_DRY":
-        decision = f"Irrigation Agent: Soil moisture is low ({moisture}%). Recommend triggering a 15-minute drip sprinkler run."
+        decision = f"Irrigation Agent: Soil moisture is low ({moisture}%). Recommend triggering a 15-minute drip sprinkler run.{manual_guide}"
         
     messages.append(decision)
     return {
@@ -39,14 +54,27 @@ def irrigation_node(state: AgentState) -> Dict:
         "decisions": {"irrigation_action": "TRIGGER_DRIP" if moisture < 35 else "DEFER"}
     }
 
-# Node 3: Fertilizer agent node
+# Node 3: Fertilizer agent node with RAG integration
 def fertilizer_node(state: AgentState) -> Dict:
     messages = ["System: Fertilizer Agent checking NPK status..."]
     nitro = state["telemetry"].get("nitrogen", 12)
+    crop = state.get("crop", "Rice")
     
-    decision = "Fertilizer Agent: Nitrogen levels optimal."
+    # Query vector store manual
+    manual_guide = ""
+    db = SessionLocal()
+    try:
+        rag_hits = search_crop_manuals(db, crop, "fertilizer ratio NPK", limit=1)
+        if rag_hits:
+            manual_guide = f"\n[RAG Manual: {rag_hits[0]['content']}]"
+    except Exception as e:
+        manual_guide = f"\n[RAG Lookup Failed: {e}]"
+    finally:
+        db.close()
+        
+    decision = f"Fertilizer Agent: Nitrogen levels optimal.{manual_guide}"
     if nitro < 10:
-        decision = f"Fertilizer Agent: Nitrogen level is deficient ({nitro} mg/kg). Recommend a light urea spray top-dressing."
+        decision = f"Fertilizer Agent: Nitrogen level is deficient ({nitro} mg/kg). Recommend a light urea spray top-dressing.{manual_guide}"
         
     messages.append(decision)
     return {

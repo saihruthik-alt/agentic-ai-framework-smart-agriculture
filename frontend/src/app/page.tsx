@@ -475,6 +475,7 @@ export default function Dashboard() {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [crops, setCrops] = useState<Crop[]>([]);
+  const [telemetryHistory, setTelemetryHistory] = useState<any[]>([]);
   const [loadingFarms, setLoadingFarms] = useState(false);
   const [loadingCrops, setLoadingCrops] = useState(false);
 
@@ -811,6 +812,97 @@ export default function Dashboard() {
     }
     setLoadingCrops(false);
   };
+
+  const fetchTelemetry = async (farmId: string) => {
+    if (!user) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry/latest`, {
+        headers: {
+          "Authorization": `Bearer ${user.token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTelemetryHistory(data);
+        if (data.length > 0) {
+          const latest = data[0];
+          setAlphaMoisture(latest.soilMoisture !== null ? Number(latest.soilMoisture) : 38);
+          setNitrogenLevel(latest.npkNitrogen !== null ? Number(latest.npkNitrogen) : 14);
+        } else {
+          // If no logs, seed database with default telemetry logs to trigger charts
+          const seedPayload = {
+            soilMoisture: alphaMoisture,
+            soilTemp: 32,
+            npkNitrogen: nitrogenLevel,
+            npkPhosphorus: phosphorusLevel,
+            npkPotassium: 20,
+            recordedAt: new Date().toISOString()
+          };
+          
+          await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${user.token}`
+            },
+            body: JSON.stringify(seedPayload)
+          });
+          fetchTelemetry(farmId);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching telemetry logs:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedFarm || !user) return;
+    
+    fetchTelemetry(selectedFarm.id);
+    fetchCrops(selectedFarm.id);
+
+    const interval = setInterval(async () => {
+      const delta = (Math.random() - 0.5) * 2;
+      const newMoisture = Math.max(10, Math.min(90, Math.round(alphaMoisture + delta)));
+      
+      const payload = {
+        soilMoisture: newMoisture,
+        soilTemp: 32,
+        npkNitrogen: nitrogenLevel,
+        npkPhosphorus: phosphorusLevel,
+        npkPotassium: 20,
+        recordedAt: new Date().toISOString()
+      };
+      
+      try {
+        await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/telemetry`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${user.token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/telemetry/latest`, {
+          headers: {
+            "Authorization": `Bearer ${user.token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTelemetryHistory(data);
+          if (data.length > 0) {
+            setAlphaMoisture(data[0].soilMoisture !== null ? Number(data[0].soilMoisture) : 38);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to post simulated telemetry:", err);
+      }
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [selectedFarm, user]);
 
   // Create Farm
   const handleCreateFarm = async (e: React.FormEvent) => {
@@ -2419,6 +2511,46 @@ export default function Dashboard() {
                   <div className="text-[11px] text-zinc-650 bg-zinc-950/40 border border-zinc-900 rounded-xl p-3.5">
                     Lat: {REALISTIC_LOCATIONS[activeLocationIndex].latitude.toFixed(4)}, Long: {REALISTIC_LOCATIONS[activeLocationIndex].longitude.toFixed(4)}
                   </div>
+                </div>
+              </div>
+
+              {/* Historical Telemetry Data Table */}
+              <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-200">📊 Database Telemetry History (Last 10 Logs)</h3>
+                  <p className="text-xs text-zinc-500">Real-time IoT metrics persisted in the PostgreSQL database.</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-sans text-zinc-300">
+                    <thead className="bg-zinc-950 text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="p-3">Time</th>
+                        <th className="p-3">Moisture</th>
+                        <th className="p-3">Temp</th>
+                        <th className="p-3">Nitrogen (N)</th>
+                        <th className="p-3">Phosphorus (P)</th>
+                        <th className="p-3">Potassium (K)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-900">
+                      {telemetryHistory.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-4 text-center text-zinc-650">No logs found in DB yet. Waiting for telemetry loop...</td>
+                        </tr>
+                      ) : (
+                        telemetryHistory.map((log: any) => (
+                          <tr key={log.id} className="hover:bg-zinc-950/20">
+                            <td className="p-3 font-mono text-zinc-400">{new Date(log.recordedAt).toLocaleString()}</td>
+                            <td className={`p-3 font-bold ${log.soilMoisture < 30 ? "text-rose-400" : "text-emerald-400"}`}>{log.soilMoisture}%</td>
+                            <td className="p-3">{log.soilTemp}°C</td>
+                            <td className="p-3">{log.npkNitrogen} mg/kg</td>
+                            <td className="p-3">{log.npkPhosphorus} mg/kg</td>
+                            <td className="p-3">{log.npkPotassium} mg/kg</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
