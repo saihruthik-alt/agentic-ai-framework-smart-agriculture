@@ -84,3 +84,28 @@ def health_check(db: Session = Depends(get_db)):
         status["status"] = "DEGRADED"
         
     return status
+
+# Pydantic schemas for Carbon & Yield models
+from pydantic import BaseModel
+
+class CarbonEstimateRequest(BaseModel):
+    pump_hours: float
+    nitrogen_fertilizer_bags: float
+    diesel_liters: float
+
+class YieldPredictionRequest(BaseModel):
+    crop_name: str
+    rainfall_mm: float
+    temperature_c: float
+    avg_moisture: float
+    hectares: float
+
+@app.post(f"{settings.API_V1_STR}/carbon-estimator")
+def estimate_carbon_footprint(req: CarbonEstimateRequest):
+    from app.services.models import estimate_carbon
+    return estimate_carbon(req.pump_hours, req.nitrogen_fertilizer_bags, req.diesel_liters)
+
+@app.post(f"{settings.API_V1_STR}/yield-predictor")
+def predict_crop_yield(req: YieldPredictionRequest):
+    from app.services.models import predict_yield
+    return predict_yield(req.crop_name, req.rainfall_mm, req.temperature_c, req.avg_moisture, req.hectares)

@@ -489,6 +489,44 @@ export default function Dashboard() {
   const [loadingFarms, setLoadingFarms] = useState(false);
   const [loadingCrops, setLoadingCrops] = useState(false);
 
+  // Financial ledger & Logistics states
+  const [transactions, setTransactions] = useState<{ id: string; loggedAt: string; type: string; category: string; amount: number; description: string; }[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [txType, setTxType] = useState("EXPENSE");
+  const [txCategory, setTxCategory] = useState("SEEDS");
+  const [txAmount, setTxAmount] = useState("");
+  const [txDescription, setTxDescription] = useState("");
+  const [txSuccess, setTxSuccess] = useState("");
+  
+  const [shipments, setShipments] = useState<{ id: string; cropName: string; quantityQuintals: number; destinationMandi: string; status: string; updatedAt: string; }[]>([]);
+  const [loadingShipments, setLoadingShipments] = useState(false);
+  const [shipCrop, setShipCrop] = useState("Rice");
+  const [shipQty, setShipQty] = useState("");
+  const [shipMandi, setShipMandi] = useState("");
+  const [shipSuccess, setShipSuccess] = useState("");
+
+  // Carbon estimator states
+  const [carbonPumpHours, setCarbonPumpHours] = useState("10.0");
+  const [carbonNfertilizer, setCarbonNfertilizer] = useState("4.0");
+  const [carbonDiesel, setCarbonDiesel] = useState("5.0");
+  const [carbonResult, setCarbonResult] = useState<{ totalCo2eKg: number; pumpEmissionsKg: number; fertilizerEmissionsKg: number; dieselEmissionsKg: number; carbonRating: string; mitigations: string[]; } | null>(null);
+  const [loadingCarbon, setLoadingCarbon] = useState(false);
+
+  // Subsidies states
+  const [subsidyState, setSubsidyState] = useState("Telangana");
+  const [subsidyLandSize, setSubsidyLandSize] = useState("2.5");
+  const [matchedSchemes, setMatchedSchemes] = useState<{ id: string; name: string; eligibleState: string; description: string; benefitDetails: string; maxLandSizeHectares: number; }[]>([]);
+  const [loadingSchemes, setLoadingSchemes] = useState(false);
+
+  // Livestock states
+  const [livestockLogs, setLivestockLogs] = useState<{ id: string; tagId: string; animalType: string; bodyTempCelsius: number; activityStatus: string; }[]>([]);
+  const [loadingLivestock, setLoadingLivestock] = useState(false);
+  const [liveTag, setLiveTag] = useState("");
+  const [liveType, setLiveType] = useState("Cow");
+  const [liveTemp, setLiveTemp] = useState("38.5");
+  const [liveActivity, setLiveActivity] = useState("Active");
+  const [liveSuccess, setLiveSuccess] = useState("");
+
   // Active Location state changeable from dashboard
   const [activeLocationIndex, setActiveLocationIndex] = useState(0);
   const [gpsDetecting, setGpsDetecting] = useState(false);
@@ -872,15 +910,213 @@ export default function Dashboard() {
     load();
   }, [user, alphaMoisture, nitrogenLevel, phosphorusLevel]);
 
+  const fetchTransactions = useCallback(async (farmId: string) => {
+    if (!user) return;
+    setLoadingTransactions(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/transactions`, {
+        headers: { "Authorization": `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTransactions(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoadingTransactions(false);
+  }, [user]);
+
+  const fetchShipments = useCallback(async (farmId: string) => {
+    if (!user) return;
+    setLoadingShipments(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/logistics`, {
+        headers: { "Authorization": `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setShipments(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoadingShipments(false);
+  }, [user]);
+
+  const fetchLivestockLogs = useCallback(async (farmId: string) => {
+    if (!user) return;
+    setLoadingLivestock(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/livestock`, {
+        headers: { "Authorization": `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLivestockLogs(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoadingLivestock(false);
+  }, [user]);
+
+  const handleCreateTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !selectedFarm) return;
+    setTxSuccess("");
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${user.token}`
+        },
+        body: JSON.stringify({
+          type: txType,
+          category: txCategory,
+          amount: parseFloat(txAmount),
+          description: txDescription,
+          loggedAt: new Date().toISOString()
+        })
+      });
+      if (res.ok) {
+        setTxSuccess("Transaction logged successfully!");
+        setTxAmount("");
+        setTxDescription("");
+        fetchTransactions(selectedFarm.id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateShipment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !selectedFarm) return;
+    setShipSuccess("");
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/logistics`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${user.token}`
+        },
+        body: JSON.stringify({
+          cropName: shipCrop,
+          quantityQuintals: parseFloat(shipQty),
+          destinationMandi: shipMandi,
+          status: "HARVESTED",
+          updatedAt: new Date().toISOString()
+        })
+      });
+      if (res.ok) {
+        setShipSuccess("Shipment tracking initialized!");
+        setShipQty("");
+        setShipMandi("");
+        fetchShipments(selectedFarm.id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateShipmentStatus = async (shipmentId: string, nextStatus: string) => {
+    if (!user || !selectedFarm) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/logistics/${shipmentId}?status=${nextStatus}`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${user.token}`
+        }
+      });
+      if (res.ok) {
+        fetchShipments(selectedFarm.id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCalculateCarbon = async () => {
+    setLoadingCarbon(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/carbon-estimator", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pump_hours: parseFloat(carbonPumpHours),
+          nitrogen_fertilizer_bags: parseFloat(carbonNfertilizer),
+          diesel_liters: parseFloat(carbonDiesel)
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCarbonResult(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setLoadingCarbon(false);
+  };
+
+  const handleMatchSchemes = async () => {
+    setLoadingSchemes(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/schemes/eligible?state=${encodeURIComponent(subsidyState)}&landSize=${parseFloat(subsidyLandSize)}`, {
+        headers: { "Authorization": `Bearer ${user?.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMatchedSchemes(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setLoadingSchemes(false);
+  };
+
+  const handleCreateLivestock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !selectedFarm) return;
+    setLiveSuccess("");
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/livestock`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${user.token}`
+        },
+        body: JSON.stringify({
+          tagId: liveTag,
+          animalType: liveType,
+          bodyTempCelsius: parseFloat(liveTemp),
+          activityStatus: liveActivity,
+          loggedAt: new Date().toISOString()
+        })
+      });
+      if (res.ok) {
+        setLiveSuccess("Livestock tag successfully registered!");
+        setLiveTag("");
+        fetchLivestockLogs(selectedFarm.id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (selectedFarm) {
       const fid = selectedFarm.id;
       setTimeout(() => {
         fetchTelemetry(fid);
         fetchCrops(fid);
+        fetchTransactions(fid);
+        fetchShipments(fid);
+        fetchLivestockLogs(fid);
       }, 0);
     }
-  }, [selectedFarm?.id, fetchTelemetry, fetchCrops]);
+  }, [selectedFarm?.id, fetchTelemetry, fetchCrops, fetchTransactions, fetchShipments, fetchLivestockLogs]);
 
   useEffect(() => {
     if (!selectedFarm || !user) return;
@@ -2919,6 +3155,523 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* TAB 7: FINANCIALS & LOGISTICS */}
+          {activeTab === "financials" && (
+            <div className="space-y-6">
+              
+              {/* Financial Ledger & Carbon Footprint Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Ledger input form */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-200">📊 Add Financial Transaction</h3>
+                  {txSuccess && <div className="text-xs text-emerald-400 font-bold">{txSuccess}</div>}
+                  
+                  <form onSubmit={handleCreateTransaction} className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">TRANSACTION TYPE</label>
+                      <select
+                        value={txType}
+                        onChange={(e) => setTxType(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      >
+                        <option value="EXPENSE">EXPENSE</option>
+                        <option value="REVENUE">REVENUE</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">CATEGORY</label>
+                      <select
+                        value={txCategory}
+                        onChange={(e) => setTxCategory(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      >
+                        <option value="SEEDS">SEEDS</option>
+                        <option value="FERTILIZERS">FERTILIZERS</option>
+                        <option value="LABOR">LABOR</option>
+                        <option value="SALES">CROP SALES</option>
+                        <option value="MACHINERY">MACHINERY</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">AMOUNT (₹)</label>
+                      <input
+                        type="number"
+                        required
+                        value={txAmount}
+                        onChange={(e) => setTxAmount(e.target.value)}
+                        placeholder="e.g. 1500"
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">DESCRIPTION</label>
+                      <input
+                        type="text"
+                        value={txDescription}
+                        onChange={(e) => setTxDescription(e.target.value)}
+                        placeholder="e.g. Purchased Urea bags"
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Log Transaction
+                    </button>
+                  </form>
+                </div>
+
+                {/* Ledger Data Table */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4 lg:col-span-2">
+                  <h3 className="text-sm font-bold text-zinc-200">💰 Financial Ledger Accounts</h3>
+                  <div className="overflow-x-auto max-h-80 overflow-y-auto">
+                    <table className="w-full text-left text-xs font-sans text-zinc-300">
+                      <thead className="bg-zinc-950 text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                        <tr>
+                          <th className="p-3">Date</th>
+                          <th className="p-3">Type</th>
+                          <th className="p-3">Category</th>
+                          <th className="p-3">Amount</th>
+                          <th className="p-3">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-900">
+                        {transactions.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-zinc-650">No transactions recorded yet.</td>
+                          </tr>
+                        ) : (
+                          transactions.map((tx: { id: string; loggedAt: string; type: string; category: string; amount: number; description: string; }) => (
+                            <tr key={tx.id} className="hover:bg-zinc-950/20">
+                              <td className="p-3 font-mono text-zinc-400">{new Date(tx.loggedAt).toLocaleDateString()}</td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  tx.type === "REVENUE" ? "bg-emerald-950 text-emerald-400" : "bg-rose-950 text-rose-400"
+                                }`}>
+                                  {tx.type}
+                                </span>
+                              </td>
+                              <td className="p-3">{tx.category}</td>
+                              <td className={`p-3 font-bold ${tx.type === "REVENUE" ? "text-emerald-400" : "text-zinc-300"}`}>
+                                ₹{tx.amount}
+                              </td>
+                              <td className="p-3 text-zinc-500">{tx.description || "N/A"}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Logistics & Supply Chain Tracker */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Logistics Input Form */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-200">🚛 Initialize Mandi Transit Logistics</h3>
+                  {shipSuccess && <div className="text-xs text-emerald-400 font-bold">{shipSuccess}</div>}
+                  
+                  <form onSubmit={handleCreateShipment} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">CROP NAME</label>
+                        <input
+                          type="text"
+                          required
+                          value={shipCrop}
+                          onChange={(e) => setShipCrop(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">QUANTITY (QUINTALS)</label>
+                        <input
+                          type="number"
+                          required
+                          value={shipQty}
+                          onChange={(e) => setShipQty(e.target.value)}
+                          placeholder="e.g. 45"
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">DESTINATION MANDI</label>
+                      <input
+                        type="text"
+                        required
+                        value={shipMandi}
+                        onChange={(e) => setShipMandi(e.target.value)}
+                        placeholder="e.g. Bowenpally Mandi, Hyderabad"
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Dispatch Cargo
+                    </button>
+                  </form>
+                </div>
+
+                {/* Logistics Shipment timeline status list */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-200">📦 Logistics & Transit Status</h3>
+                  <div className="space-y-4 max-h-80 overflow-y-auto">
+                    {shipments.length === 0 ? (
+                      <p className="text-xs text-zinc-550 text-center py-6">No cargo dispatches recorded yet.</p>
+                    ) : (
+                      shipments.map((s: { id: string; cropName: string; quantityQuintals: number; destinationMandi: string; status: string; updatedAt: string; }) => (
+                        <div key={s.id} className="border border-zinc-850 bg-zinc-950/20 p-4 rounded-2xl space-y-3">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-bold text-zinc-300">{s.cropName} ({s.quantityQuintals} q)</span>
+                            <span className="font-mono text-zinc-500">{new Date(s.updatedAt).toLocaleTimeString()}</span>
+                          </div>
+                          <p className="text-xs text-zinc-500">Destination: {s.destinationMandi}</p>
+                          
+                          {/* Timeline statuses */}
+                          <div className="flex justify-between items-center pt-2">
+                            {["HARVESTED", "IN_TRANSIT", "ARRIVED", "SOLD"].map((stage) => (
+                              <button
+                                key={stage}
+                                onClick={() => handleUpdateShipmentStatus(s.id, stage)}
+                                className={`text-[9px] font-bold px-2 py-1 rounded transition-colors ${
+                                  s.status === stage
+                                    ? "bg-emerald-950 text-emerald-400 border border-emerald-800/40"
+                                    : "bg-zinc-950 text-zinc-550 border border-zinc-900 hover:text-zinc-300"
+                                }`}
+                              >
+                                {stage.replace("_", " ")}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Carbon Footprint & Green advisor */}
+              <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-200">🌱 Carbon Footprint & Green Advisor</h3>
+                  <p className="text-xs text-zinc-550">Estimate seasonal greenhouse emissions and receive mitigation recommendations.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">WATER PUMP RUN (HOURS)</label>
+                      <input
+                        type="number"
+                        value={carbonPumpHours}
+                        onChange={(e) => setCarbonPumpHours(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-350 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">UREA FERTILIZER (BAGS)</label>
+                      <input
+                        type="number"
+                        value={carbonNfertilizer}
+                        onChange={(e) => setCarbonNfertilizer(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-350 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">DIESEL USED (LITERS)</label>
+                      <input
+                        type="number"
+                        value={carbonDiesel}
+                        onChange={(e) => setCarbonDiesel(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-350 focus:outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={handleCalculateCarbon}
+                      disabled={loadingCarbon}
+                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                    >
+                      {loadingCarbon ? "Calculating..." : "Compute Carbon Index"}
+                    </button>
+                  </div>
+
+                  {carbonResult ? (
+                    <div className="md:col-span-3 border border-zinc-850 bg-zinc-950/40 p-6 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      {/* Left: Metrics */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
+                          <span className="text-xs text-zinc-400">Total Greenhouse Footprint:</span>
+                          <span className={`text-sm font-mono font-bold ${
+                            carbonResult.carbonRating === "Excellent" ? "text-emerald-400" : "text-rose-400"
+                          }`}>{carbonResult.totalCo2eKg} kg CO2e</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
+                          <span className="text-xs text-zinc-400">Pumping Emissions:</span>
+                          <span className="text-xs font-mono text-zinc-300">{carbonResult.pumpEmissionsKg} kg</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
+                          <span className="text-xs text-zinc-400">Chemical Inputs Footprint:</span>
+                          <span className="text-xs font-mono text-zinc-300">{carbonResult.fertilizerEmissionsKg} kg</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-zinc-400">Tillage & Diesel Index:</span>
+                          <span className="text-xs font-mono text-zinc-300">{carbonResult.dieselEmissionsKg} kg</span>
+                        </div>
+                      </div>
+
+                      {/* Right: Mitigation Checklist */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">🌿 Sustainable Mitigation Action Plan</h4>
+                        {carbonResult.mitigations.length === 0 ? (
+                          <p className="text-xs text-emerald-400">Your agricultural practices are fully low-impact carbon neutral. Excellent work!</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {carbonResult.mitigations.map((m: string, i: number) => (
+                              <li key={i} className="text-xs text-zinc-355 flex items-start gap-2">
+                                <span className="text-emerald-500">✔</span>
+                                <span>{m}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                    </div>
+                  ) : (
+                    <div className="md:col-span-3 border border-dashed border-zinc-850 rounded-2xl py-12 text-center text-xs text-zinc-555 bg-zinc-950/20">
+                      Input your metrics to generate the Green Advisor action checklist.
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 8: GOVERNMENT SUBSIDIES MATCHING ENGINE */}
+          {activeTab === "subsidies" && (
+            <div className="max-w-4xl mx-auto space-y-6">
+              
+              {/* Query Panel */}
+              <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
+                <h3 className="text-sm font-bold text-zinc-200">🏛️ Government Subsidies & Schemes Optimizer</h3>
+                <p className="text-xs text-zinc-500">Query regional agricultural benefits based on location, state registry, and land holdings.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                  <div>
+                    <label className="block text-[10px] text-zinc-500 font-bold mb-1">REGISTRATION STATE</label>
+                    <select
+                      value={subsidyState}
+                      onChange={(e) => setSubsidyState(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                    >
+                      <option value="Telangana">Telangana</option>
+                      <option value="Andhra Pradesh">Andhra Pradesh</option>
+                      <option value="All">Other / Central</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-zinc-500 font-bold mb-1">TOTAL LAND holdings (HECTARES)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={subsidyLandSize}
+                      onChange={(e) => setSubsidyLandSize(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-end">
+                    <button
+                      onClick={handleMatchSchemes}
+                      disabled={loadingSchemes}
+                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                    >
+                      {loadingSchemes ? "Scanning..." : "Scan Eligible Subsidies"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Results List */}
+              <div className="space-y-4">
+                {matchedSchemes.length === 0 ? (
+                  <div className="border border-dashed border-zinc-850 rounded-2xl py-12 text-center text-xs text-zinc-555 bg-zinc-950/20">
+                    No active eligible schemes found. Change the state or land holding query to recheck.
+                  </div>
+                ) : (
+                  matchedSchemes.map((scheme: { id: string; name: string; eligibleState: string; description: string; benefitDetails: string; maxLandSizeHectares: number; }) => (
+                    <div key={scheme.id} className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md relative overflow-hidden">
+                      <div className="absolute top-0 right-0 bg-emerald-950/50 text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-3.5 py-1.5 border-l border-b border-emerald-800/40 rounded-bl-2xl">
+                        State: {scheme.eligibleState}
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-bold text-zinc-200">{scheme.name}</h4>
+                        <p className="text-xs text-zinc-400 leading-relaxed">{scheme.description}</p>
+                        
+                        <div className="bg-emerald-950/20 border border-emerald-800/20 p-4 rounded-xl space-y-1">
+                          <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Benefit Details:</span>
+                          <p className="text-xs text-zinc-300">{scheme.benefitDetails}</p>
+                        </div>
+                        
+                        <div className="text-[10px] text-zinc-555 font-mono">
+                          Eligible Land Limit: &lt;= {scheme.maxLandSizeHectares} Hectares
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 9: LIVESTOCK TELEMETRY CARE */}
+          {activeTab === "livestock" && (
+            <div className="space-y-6">
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Add RFID ear tag form */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-200">🐄 Register Livestock Ear Tag</h3>
+                  {liveSuccess && <div className="text-xs text-emerald-400 font-bold">{liveSuccess}</div>}
+                  
+                  <form onSubmit={handleCreateLivestock} className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">RFID EAR TAG ID</label>
+                      <input
+                        type="text"
+                        required
+                        value={liveTag}
+                        onChange={(e) => setLiveTag(e.target.value)}
+                        placeholder="e.g. RFID-COW-1088"
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-350 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">ANIMAL BREED / TYPE</label>
+                      <select
+                        value={liveType}
+                        onChange={(e) => setLiveType(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      >
+                        <option value="Cow">Cow</option>
+                        <option value="Buffalo">Buffalo</option>
+                        <option value="Goat">Goat</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">BODY TEMP (°C)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          required
+                          value={liveTemp}
+                          onChange={(e) => setLiveTemp(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-350 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-zinc-500 font-bold mb-1">ACTIVITY INDEX</label>
+                        <select
+                          value={liveActivity}
+                          onChange={(e) => setLiveActivity(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-350 focus:outline-none"
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Resting">Resting</option>
+                          <option value="Low Activity">Low Activity</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Save RFID Log
+                    </button>
+                  </form>
+                </div>
+
+                {/* Livestock database logger feeds */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4 lg:col-span-2">
+                  <h3 className="text-sm font-bold text-zinc-200">🐃 Livestock Telemetry Dashboard</h3>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs font-sans text-zinc-300">
+                      <thead className="bg-zinc-950 text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                        <tr>
+                          <th className="p-3">Ear Tag ID</th>
+                          <th className="p-3">Breed</th>
+                          <th className="p-3">Body Temp</th>
+                          <th className="p-3">Activity Status</th>
+                          <th className="p-3">Health Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-900">
+                        {livestockLogs.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-zinc-650">No livestock telemetry recorded.</td>
+                          </tr>
+                        ) : (
+                          livestockLogs.map((l: { id: string; tagId: string; animalType: string; bodyTempCelsius: number; activityStatus: string; }) => (
+                            <tr key={l.id} className="hover:bg-zinc-950/20">
+                              <td className="p-3 font-mono text-zinc-400 font-bold">{l.tagId}</td>
+                              <td className="p-3">{l.animalType}</td>
+                              <td className={`p-3 font-bold ${
+                                l.bodyTempCelsius > 39.5 ? "text-rose-400" : "text-emerald-400"
+                              }`}>{l.bodyTempCelsius}°C</td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  l.activityStatus === "Active" ? "bg-emerald-950 text-emerald-400" : "bg-purple-950 text-purple-400"
+                                }`}>
+                                  {l.activityStatus}
+                                </span>
+                              </td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  l.bodyTempCelsius > 39.5 ? "bg-rose-950 text-rose-400" : "bg-emerald-950 text-emerald-400"
+                                }`}>
+                                  {l.bodyTempCelsius > 39.5 ? "🔴 FEVER ALERT" : "🟢 HEALTHY"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
           )}
 
