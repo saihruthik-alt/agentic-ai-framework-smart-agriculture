@@ -41,10 +41,12 @@ mvn spring-boot:run
 ```
 
 ### 3. Start the AI Agent Server (Python)
-Open a new terminal tab, go to `backend-ai`, activate python, and start the agent:
+Open a new terminal tab, navigate to `backend-ai`, set up the virtual environment, install dependencies, and start the agent:
 ```bash
 cd backend-ai
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 uvicorn app.main:app --port 8000
 ```
 
