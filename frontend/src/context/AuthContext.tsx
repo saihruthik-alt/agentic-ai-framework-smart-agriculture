@@ -59,6 +59,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return false;
   });
 
+  useEffect(() => {
+    setLoading(false);
+  }, []);
+
   const login = async (username: string, password: string) => {
     setLoading(true);
     try {
