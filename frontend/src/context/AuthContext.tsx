@@ -33,33 +33,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push("/login");
   };
 
-  const [user, setUser] = useState<UserSession | null>(() => {
-    if (typeof window !== "undefined") {
-      const savedToken = getCookie("token");
-      const savedUser = localStorage.getItem("user_profile");
-      if (savedToken && savedUser) {
-        try {
-          const parsedProfile = JSON.parse(savedUser);
-          return {
-            ...parsedProfile,
-            token: savedToken
-          };
-        } catch {
-          eraseCookie("token");
-          localStorage.removeItem("user_profile");
-          return null;
-        }
-      }
-    }
-    return null;
-  });
-
-  const [loading, setLoading] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return false;
-  });
+  const [user, setUser] = useState<UserSession | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const savedToken = getCookie("token");
+    const savedUser = localStorage.getItem("user_profile");
+    if (savedToken && savedUser) {
+      try {
+        const parsedProfile = JSON.parse(savedUser);
+        setUser({
+          ...parsedProfile,
+          token: savedToken
+        });
+      } catch {
+        eraseCookie("token");
+        localStorage.removeItem("user_profile");
+      }
+    }
     setLoading(false);
   }, []);
 

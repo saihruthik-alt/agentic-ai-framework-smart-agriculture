@@ -475,6 +475,12 @@ export default function Dashboard() {
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [agentLogs, setAgentLogs] = useState(INITIAL_AGENT_LOGS);
   const [coreHealth, setCoreHealth] = useState<ServiceHealth | null>(null);
