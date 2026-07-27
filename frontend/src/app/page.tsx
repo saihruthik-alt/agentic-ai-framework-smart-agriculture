@@ -1837,7 +1837,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                     </p>
                   </div>
                   <button
-                    onClick={() => setActiveTab("farms")}
+                    onClick={() => setActiveTab("crops")}
                     className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
                   >
                     ➕ Register Your First Farm
@@ -1977,7 +1977,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                                 You haven&apos;t registered any crops for this farm yet. Go to the crops panel to add crop details, varieties, and target harvest periods.
                               </p>
                               <button
-                                onClick={() => setActiveTab("farms")}
+                                onClick={() => setActiveTab("crops")}
                                 className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-bold rounded-xl transition-all cursor-pointer shadow-lg animate-pulse"
                               >
                                 ➕ Seed New Crop
@@ -2033,7 +2033,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                         </span>
                         <button
                           onClick={() => {
-                            setActiveTab("farms");
+                            setActiveTab("crops");
                           }}
                           className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
                         >
