@@ -2126,38 +2126,127 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                       </div>
                     </div>
 
-                    {/* AI Agent reasoning stream console */}
+                    {/* Farm Alerts & Notices */}
                     <div className="border border-zinc-800/60 rounded-2xl p-6 bg-[#090910] flex flex-col h-[400px]">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h3 className="text-sm font-semibold text-zinc-200">Advisory Action Center</h3>
-                          <p className="text-xs text-zinc-500 font-medium">Real-time agricultural intelligence stream</p>
+                          <h3 className="text-sm font-semibold text-zinc-200">⚠️ Farm Alerts & Notices</h3>
+                          <p className="text-xs text-zinc-500 font-medium">Real-time alarms & tasks needed</p>
                         </div>
                         <span className="flex h-2 w-2 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                         </span>
                       </div>
                       
-                      <div className="flex-1 overflow-y-auto space-y-3.5 pr-2 custom-scrollbar text-xs font-mono">
-                        {agentLogs.map((log, index) => {
-                          let agentColor = "text-zinc-400";
-                          if (log.type.includes("weather")) agentColor = "text-sky-400";
-                          if (log.type.includes("irrigation")) agentColor = "text-blue-400";
-                          if (log.type.includes("fertilizer")) agentColor = "text-amber-400";
-                          if (log.type.includes("market")) agentColor = "text-purple-400";
-                          if (log.type.includes("disease")) agentColor = "text-rose-400";
-
-                          return (
-                            <div key={index} className="border border-zinc-905 bg-zinc-950/40 rounded-xl p-3 space-y-1">
-                              <div className="flex justify-between items-center text-[10px] text-zinc-555">
-                                <span className={`font-bold ${agentColor}`}>[{log.agent}]</span>
-                                <span>{log.time}</span>
+                      <div className="flex-1 overflow-y-auto space-y-3.5 pr-2 custom-scrollbar text-xs">
+                        {!selectedFarm ? (
+                          <div className="border border-zinc-850 bg-zinc-950/40 rounded-xl p-4 text-center space-y-2 text-zinc-550">
+                            <span className="text-2xl block">🚜</span>
+                            <p className="font-semibold text-zinc-400">No Active Farm Bound</p>
+                            <p className="text-[10px]">Register a farm under "Crop Management" to enable real-time alarms and crop scheduling notices.</p>
+                          </div>
+                        ) : (
+                          <>
+                            {/* Weather Notice */}
+                            <div className="border border-sky-950/30 bg-sky-955/5 text-sky-400 rounded-xl p-3.5 space-y-1">
+                              <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+                                <span>⛈️ Weather Notice</span>
+                                <span className="px-1.5 py-0.5 rounded bg-sky-950/40 border border-sky-800/30 text-[8px]">Active</span>
                               </div>
-                              <p className="text-zinc-300 leading-relaxed font-sans">{log.message}</p>
+                              <p className="text-zinc-300 leading-relaxed text-[11px]">
+                                High probability of rainfall detected over {selectedFarm.locationName || "farm coordinates"} in next 48 hours. Postpone foliar pesticide sprays and clear field drainage channels.
+                              </p>
                             </div>
-                          );
-                        })}
+
+                            {/* Crops Warning */}
+                            {crops.length === 0 && (
+                              <div className="border border-amber-950/30 bg-amber-955/5 text-amber-500 rounded-xl p-3.5 space-y-1">
+                                <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+                                  <span>🌱 Seeding Required</span>
+                                  <span className="px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-800/30 text-[8px] text-amber-400">Task</span>
+                                </div>
+                                <p className="text-zinc-300 leading-relaxed text-[11px]">
+                                  No crops logged in {selectedFarm.name}. Go to "Crop Management" to log planted crops to activate expert agent calibration.
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Telemetry Alarms */}
+                            {telemetryHistory.length > 0 ? (
+                              (() => {
+                                const latest = telemetryHistory[telemetryHistory.length - 1];
+                                const alerts = [];
+                                
+                                if (latest.soilMoisture < 35) {
+                                  alerts.push(
+                                    <div key="moisture" className="border border-rose-950/30 bg-rose-955/5 text-rose-455 rounded-xl p-3.5 space-y-1">
+                                      <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+                                        <span>💧 Critical Moisture Alert</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-800/30 text-[8px] text-rose-400">Critical</span>
+                                      </div>
+                                      <p className="text-zinc-300 leading-relaxed text-[11px]">
+                                        Soil moisture is low at {latest.soilMoisture}%. Irrigation (sprinklers/drip) is needed immediately to prevent root stress.
+                                      </p>
+                                    </div>
+                                  );
+                                } else if (latest.soilMoisture < 50) {
+                                  alerts.push(
+                                    <div key="moisture-low" className="border border-amber-950/30 bg-amber-955/5 text-amber-500 rounded-xl p-3.5 space-y-1">
+                                      <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+                                        <span>💧 Low Moisture Alarm</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-800/30 text-[8px] text-amber-400">Alert</span>
+                                      </div>
+                                      <p className="text-zinc-300 leading-relaxed text-[11px]">
+                                        Soil moisture is at {latest.soilMoisture}%. Keep irrigation channels open for scheduled crop watering.
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                if (latest.soilTemp > 32) {
+                                  alerts.push(
+                                    <div key="temp" className="border border-rose-950/30 bg-rose-955/5 text-rose-455 rounded-xl p-3.5 space-y-1">
+                                      <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+                                        <span>☀️ Soil Heat Alert</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-800/30 text-[8px] text-rose-400">Critical</span>
+                                      </div>
+                                      <p className="text-zinc-300 leading-relaxed text-[11px]">
+                                        Soil temperature has crossed {latest.soilTemp}°C. Apply light organic mulching to protect roots and slow down evaporation.
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                if (latest.npkNitrogen < 40) {
+                                  alerts.push(
+                                    <div key="nitrogen" className="border border-amber-950/30 bg-amber-955/5 text-amber-500 rounded-xl p-3.5 space-y-1">
+                                      <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+                                        <span>🌱 Nitrogen Deficit</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-amber-950/40 border border-amber-800/30 text-[8px] text-amber-400">Task</span>
+                                      </div>
+                                      <p className="text-zinc-300 leading-relaxed text-[11px]">
+                                        Low Nitrogen level detected ({latest.npkNitrogen} mg/kg). Nitrogen fertilizer (e.g. Urea) application is recommended during current vegetative stage.
+                                      </p>
+                                    </div>
+                                  );
+                                }
+                                
+                                return alerts.length > 0 ? alerts : (
+                                  <div className="border border-emerald-950/30 bg-emerald-955/5 text-emerald-400 rounded-xl p-3.5 space-y-1 text-center">
+                                    <span className="text-xl">✅</span>
+                                    <p className="font-semibold text-zinc-200">Soil Status Optimal</p>
+                                    <p className="text-[10px] text-zinc-400">All temperature, moisture, and NPK nutrients are within normal ranges.</p>
+                                  </div>
+                                );
+                              })()
+                            ) : (
+                              <div className="border border-zinc-850 bg-zinc-950/40 rounded-xl p-3.5 text-center text-zinc-550">
+                                No active telemetry logs found. Enable simulated IoT Node telemetry feeds.
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
