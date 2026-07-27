@@ -1454,6 +1454,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
 
     const payload = {
       query: query,
+      agent: selectedChatAgent,
       crop: AVAILABLE_CROPS[activePlaybookCropIdx]?.value || "Rice",
       telemetry: {
         moisture: alphaMoisture,
