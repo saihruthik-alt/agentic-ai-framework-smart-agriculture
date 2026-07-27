@@ -1909,28 +1909,8 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
           {/* TAB 1: MAIN DASHBOARD */}
           {activeTab === "dashboard" && (
             <>
-              {farms.length === 0 ? (
-                /* EMPTY STATE FOR DASHBOARD */
-                <div className="border border-dashed border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-12 text-center backdrop-blur-md space-y-6 max-w-2xl mx-auto my-12 shadow-2xl relative overflow-hidden">
-                  <div className="absolute -top-12 -left-12 h-36 w-36 rounded-full bg-emerald-500/10 blur-3xl"></div>
-                  <div className="text-5xl animate-bounce">🌾</div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-bold text-zinc-200">No Registered Farms or Fields</h3>
-                    <p className="text-xs text-zinc-550 max-w-md mx-auto leading-relaxed">
-                      You currently have no farms registered under your account. Register a farm field and seed crops to begin monitoring real-time telemetry, IoT sensors, and AI recommendations.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab("crops")}
-                    className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
-                  >
-                    ➕ Register Your First Farm
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {/* Metric Widgets */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Metric Widgets */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {/* Soil Moisture */}
                     <div
                       onClick={() => setActiveTab("telemetry")}
@@ -2252,8 +2232,6 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                   </div>
                 </>
               )}
-            </>
-          )}
 
           {/* TAB 2: AI AGENTS */}
           {activeTab === "agents" && (
