@@ -2891,10 +2891,6 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                         </form>
                       </div>
                       </div>
-                    </>
-                  )}
-                </div>
-              }
 
               {/* Bottom Section: Crop Season Decision Planner, Resource Calculator & Profitability Index */}
               <div className="border border-zinc-800 bg-[#0c0c12]/40 rounded-3xl p-8 space-y-6">
@@ -3042,6 +3038,10 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                   </div>
                 </div>
               </div>
+            </>
+          )}
+        </div>
+      }
             </div>
           )}
 
