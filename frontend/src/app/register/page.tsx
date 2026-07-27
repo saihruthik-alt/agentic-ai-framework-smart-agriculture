@@ -13,53 +13,6 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Check if script is already added
-    if (document.getElementById("google-gsi-client")) return;
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.id = "google-gsi-client";
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-  }, []);
-
-  const handleGoogleCredentialResponse = async (response: any) => {
-    setError("");
-    setLoading(true);
-    try {
-      await loginGoogle(response.credential);
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "Google registration failed.";
-      setError(errMsg);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const initGoogle = () => {
-      if (typeof window !== "undefined" && (window as any).google) {
-        (window as any).google.accounts.id.initialize({
-          client_id: "683526543168-mockapps.apps.googleusercontent.com", 
-          callback: handleGoogleCredentialResponse
-        });
-        (window as any).google.accounts.id.renderButton(
-          document.getElementById("google-signin-button"),
-          { theme: "filled_blue", size: "large", width: 380 }
-        );
-      }
-    };
-
-    const checkInterval = setInterval(() => {
-      if (typeof window !== "undefined" && (window as any).google) {
-        initGoogle();
-        clearInterval(checkInterval);
-      }
-    }, 500);
-
-    return () => clearInterval(checkInterval);
-  }, []);
-
   const handleDeveloperGoogleLogin = async () => {
     setError("");
     setLoading(true);
@@ -74,7 +27,7 @@ export default function RegisterPage() {
       const mockGoogleToken = `${header}.${payload}.mock_signature`;
       await loginGoogle(mockGoogleToken);
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "Developer signup failed.";
+      const errMsg = err instanceof Error ? err.message : "Google registration failed.";
       setError(errMsg);
       setLoading(false);
     }
@@ -217,19 +170,19 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-4 flex flex-col items-center">
-          <div id="google-signin-button" className="w-full flex justify-center min-h-[40px]"></div>
-          
           <button
             type="button"
             onClick={handleDeveloperGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-950 border border-zinc-855 hover:border-zinc-800 py-3 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 hover:text-white transition-all cursor-pointer shadow-lg"
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-200 py-3.5 text-xs font-bold transition-all cursor-pointer shadow-lg active:scale-[0.99] font-sans"
           >
-            🚀 Quick Google Sign-Up (Mock G-Auth)
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Sign up with Google
           </button>
-          
-          <p className="text-[10px] text-zinc-500 text-center leading-relaxed max-w-[340px]">
-            ℹ️ To use standard Google Sign-In, configure your Google Console Client ID in <code className="text-zinc-400">register/page.tsx</code>. Otherwise, use the Developer button for instant offline/local testing.
-          </p>
         </div>
 
         <div className="text-center pt-6 border-t border-zinc-900 mt-6">
