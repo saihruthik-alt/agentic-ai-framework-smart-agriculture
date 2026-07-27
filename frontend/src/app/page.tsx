@@ -1837,7 +1837,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
         {/* System Diagnostics Box */}
         <div className="border border-zinc-800/80 rounded-2xl bg-[#0f0f18] p-4">
           <div className="flex items-center justify-between mb-3.5">
-            <span className="text-xs font-semibold text-zinc-400">System Core Health</span>
+            <span className="text-xs font-semibold text-zinc-400">Agri-System Diagnostics</span>
             <button
               onClick={fetchHealthChecks}
               id="refresh-health-btn"
@@ -1848,7 +1848,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
           </div>
           <div className="space-y-2 text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-zinc-500">Core Service:</span>
+              <span className="text-zinc-500">Agri-Telemetry Sync:</span>
               <span
                 id="health-core-status"
                 className={`font-semibold ${
@@ -1859,7 +1859,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-zinc-500">AI Agent Engine:</span>
+              <span className="text-zinc-500">AI Agronomist Brain:</span>
               <span
                 id="health-ai-status"
                 className={`font-semibold ${
@@ -1870,10 +1870,18 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               </span>
             </div>
             <div className="flex justify-between items-center pt-1 border-t border-zinc-800/50">
-              <span className="text-zinc-500">Database:</span>
+              <span className="text-zinc-500">Soil & Crop Data Store:</span>
               <span className="text-emerald-400 font-bold">
                 {coreHealth?.database === "UP" ? "Connected" : "Offline"}
               </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-500">Satellite Crop Monitor:</span>
+              <span className="text-emerald-400 font-bold">ONLINE</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-500">IoT Soil Probe Network:</span>
+              <span className="text-emerald-400 font-bold">ACTIVE</span>
             </div>
           </div>
         </div>
@@ -2174,8 +2182,8 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                     <div className="border border-zinc-800/60 rounded-2xl p-6 bg-[#090910] flex flex-col h-[400px]">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h3 className="text-sm font-semibold text-zinc-200">Agentic Action Center</h3>
-                          <p className="text-xs text-zinc-500 font-medium">Real-time decisions logs (LangGraph)</p>
+                          <h3 className="text-sm font-semibold text-zinc-200">Advisory Action Center</h3>
+                          <p className="text-xs text-zinc-500 font-medium">Real-time agricultural intelligence stream</p>
                         </div>
                         <span className="flex h-2 w-2 relative">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
