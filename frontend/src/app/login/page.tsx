@@ -1,15 +1,83 @@
 "use client";
-
-import React, { useState } from "react";
+ 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginGoogle } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if script is already added
+    if (document.getElementById("google-gsi-client")) return;
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.id = "google-gsi-client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+  }, []);
+
+  const handleGoogleCredentialResponse = async (response: any) => {
+    setError("");
+    setLoading(true);
+    try {
+      await loginGoogle(response.credential);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Google login failed.";
+      setError(errMsg);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initGoogle = () => {
+      if (typeof window !== "undefined" && (window as any).google) {
+        (window as any).google.accounts.id.initialize({
+          client_id: "683526543168-mockapps.apps.googleusercontent.com", 
+          callback: handleGoogleCredentialResponse
+        });
+        (window as any).google.accounts.id.renderButton(
+          document.getElementById("google-signin-button"),
+          { theme: "filled_blue", size: "large", width: 380 }
+        );
+      }
+    };
+
+    const checkInterval = setInterval(() => {
+      if (typeof window !== "undefined" && (window as any).google) {
+        initGoogle();
+        clearInterval(checkInterval);
+      }
+    }, 500);
+
+    return () => clearInterval(checkInterval);
+  }, []);
+
+  const handleDeveloperGoogleLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      // Create a mock base64 Google token containing testing fields
+      const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }));
+      const payload = btoa(JSON.stringify({
+        email: "google_farmer_test@gmail.com",
+        name: "Google Persistent Farmer",
+        given_name: "GoogleFarmer",
+        sub: "mock-google-sub-777"
+      }));
+      const mockGoogleToken = `${header}.${payload}.mock_signature`;
+      await loginGoogle(mockGoogleToken);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Developer login failed.";
+      setError(errMsg);
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +174,24 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div className="text-center pt-2">
+        <div className="relative my-6 flex items-center justify-center">
+          <span className="absolute px-3 bg-[#0c0c12] text-[10px] text-zinc-550 font-bold uppercase tracking-widest">or sign in with</span>
+          <div className="w-full border-t border-zinc-800/80"></div>
+        </div>
+
+        <div className="space-y-4 flex flex-col items-center">
+          <div id="google-signin-button" className="w-full flex justify-center min-h-[40px]"></div>
+          
+          <button
+            type="button"
+            onClick={handleDeveloperGoogleLogin}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-950 border border-zinc-850 hover:border-zinc-800 py-3 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 hover:text-white transition-all cursor-pointer shadow-lg"
+          >
+            🚀 Developer Google Login (Mock G-Auth)
+          </button>
+        </div>
+
+        <div className="text-center pt-6 border-t border-zinc-900 mt-6">
           <p className="text-xs text-zinc-500">
             Don&apos;t have an account?{" "}
             <Link href="/register" className="font-semibold text-emerald-400 hover:text-emerald-300">

@@ -17,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, role: string) => Promise<void>;
+  loginGoogle: (credential: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -142,8 +143,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const loginGoogle = async (credential: string) => {
+    setLoading(true);
+    try {
+      let response;
+      try {
+        response = await fetch("http://localhost:8080/api/v1/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential })
+        });
+      } catch (err) {
+        throw new Error("Could not connect to the backend authentication server. Please ensure that your Spring Boot service is active on port 8080. " + String(err));
+      }
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "Google authentication failed");
+      }
+
+      const session: UserSession = {
+        userId: data.userId,
+        username: data.username,
+        email: data.email,
+        role: data.role,
+        token: data.token
+      };
+
+      setCookie("token", data.token, 7);
+      localStorage.setItem("user_profile", JSON.stringify({
+        userId: data.userId,
+        username: data.username,
+        email: data.email,
+        role: data.role
+      }));
+
+      setUser(session);
+      setLoading(false);
+      router.push("/");
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginGoogle, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

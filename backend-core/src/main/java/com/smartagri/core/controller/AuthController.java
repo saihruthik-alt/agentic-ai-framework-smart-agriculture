@@ -49,4 +49,20 @@ public class AuthController {
             return ResponseEntity.status(500).body(error);
         }
     }
+
+    @PostMapping("/google")
+    public ResponseEntity<?> loginGoogle(@RequestBody Map<String, String> request) {
+        try {
+            AuthResponse response = authService.loginGoogle(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage() != null ? e.getMessage() : "Google authentication failed.");
+            return ResponseEntity.status(500).body(error);
+        }
+    }
 }
