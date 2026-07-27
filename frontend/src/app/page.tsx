@@ -1770,6 +1770,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               { id: "crops", label: t("Crop Management", "फसल प्रबंधन", "పంట నిర్వహణ"), icon: "🌱" },
               { id: "telemetry", label: t("Sensor Feeds", "सेंसर फीड", "సెన్సార్ ఫీడ్స్"), icon: "📡" },
               { id: "market", label: t("Market Analytics", "बाजार विश्लेषण", "మార్కెట్ విశ్లేషణ"), icon: "📈" },
+              { id: "subsidies", label: t("Govt Schemes", "सरकारी योजनाएं", "ప్రభుత్వ పథకాలు"), icon: "🏛️" },
               { id: "profile", label: t("User Profile", "उपयोगकर्ता प्रोफ़ाइल", "వినియోగదారు ప్రొఫైల్"), icon: "👤" },
             ].map((item) => (
               <button
@@ -3657,79 +3658,138 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
 
           {/* TAB 8: GOVERNMENT SUBSIDIES MATCHING ENGINE */}
           {activeTab === "subsidies" && (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Query Panel */}
-              <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
-                <h3 className="text-sm font-bold text-zinc-200">🏛️ Government Subsidies & Schemes Optimizer</h3>
-                <p className="text-xs text-zinc-500">Query regional agricultural benefits based on location, state registry, and land holdings.</p>
+              {/* Left Column: Matcher & Results */}
+              <div className="lg:col-span-2 space-y-6">
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                  <div>
-                    <label className="block text-[10px] text-zinc-500 font-bold mb-1">REGISTRATION STATE</label>
-                    <select
-                      value={subsidyState}
-                      onChange={(e) => setSubsidyState(e.target.value)}
-                      className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
-                    >
-                      <option value="Telangana">Telangana</option>
-                      <option value="Andhra Pradesh">Andhra Pradesh</option>
-                      <option value="All">Other / Central</option>
-                    </select>
-                  </div>
+                {/* Query Panel */}
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-200">🏛️ Government Subsidies & Schemes Optimizer</h3>
+                  <p className="text-xs text-zinc-500">Query regional agricultural benefits based on location, state registry, and land holdings.</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">REGISTRATION STATE</label>
+                      <select
+                        value={subsidyState}
+                        onChange={(e) => setSubsidyState(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      >
+                        <option value="Telangana">Telangana</option>
+                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                        <option value="All">Other / Central</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="block text-[10px] text-zinc-500 font-bold mb-1">TOTAL LAND holdings (HECTARES)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={subsidyLandSize}
-                      onChange={(e) => setSubsidyLandSize(e.target.value)}
-                      className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">TOTAL LAND HOLDINGS (HECTARES)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={subsidyLandSize}
+                        onChange={(e) => setSubsidyLandSize(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:outline-none"
+                      />
+                    </div>
 
-                  <div className="flex items-end">
-                    <button
-                      onClick={handleMatchSchemes}
-                      disabled={loadingSchemes}
-                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
-                    >
-                      {loadingSchemes ? "Scanning..." : "Scan Eligible Subsidies"}
-                    </button>
+                    <div className="flex items-end">
+                      <button
+                        onClick={handleMatchSchemes}
+                        disabled={loadingSchemes}
+                        className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                      >
+                        {loadingSchemes ? "Scanning Database..." : "Scan Eligible Subsidies"}
+                      </button>
+                    </div>
                   </div>
+                </div>
+
+                {/* Results List */}
+                <div className="space-y-4">
+                  {matchedSchemes.length === 0 ? (
+                    <div className="border border-dashed border-zinc-850 rounded-2xl py-12 text-center text-xs text-zinc-550 bg-zinc-950/20">
+                      No active eligible schemes found. Change the state or land holding query to scan.
+                    </div>
+                  ) : (
+                    matchedSchemes.map((scheme: { id: string; name: string; eligibleState: string; description: string; benefitDetails: string; maxLandSizeHectares: number; }) => {
+                      let applyUrl = "https://www.myscheme.gov.in/";
+                      if (scheme.name.includes("PM-KISAN")) applyUrl = "https://pmkisan.gov.in/";
+                      else if (scheme.name.includes("Rythu Bandhu")) applyUrl = "https://rythubandhu.telangana.gov.in/";
+                      else if (scheme.name.includes("YSR Rythu Bharosa")) applyUrl = "https://ysrrythubharosa.ap.gov.in/";
+                      else if (scheme.name.includes("Fasal Bima")) applyUrl = "https://pmfby.gov.in/";
+
+                      return (
+                        <div key={scheme.id} className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md relative overflow-hidden flex flex-col justify-between">
+                          <div className="absolute top-0 right-0 bg-emerald-950/50 text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-3.5 py-1.5 border-l border-b border-emerald-800/40 rounded-bl-2xl">
+                            State: {scheme.eligibleState}
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-bold text-zinc-200 pr-20">{scheme.name}</h4>
+                            <p className="text-xs text-zinc-400 leading-relaxed">{scheme.description}</p>
+                            
+                            <div className="bg-emerald-950/20 border border-emerald-800/20 p-4 rounded-xl space-y-1">
+                              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Benefit Details:</span>
+                              <p className="text-xs text-zinc-300">{scheme.benefitDetails}</p>
+                            </div>
+                            
+                            <div className="flex justify-between items-center pt-2">
+                              <div className="text-[10px] text-zinc-500 font-mono">
+                                Eligible Land Limit: &lt;= {scheme.maxLandSizeHectares} Hectares
+                              </div>
+                              <a
+                                href={applyUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all"
+                              >
+                                Apply Directly ↗
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
-              {/* Results List */}
-              <div className="space-y-4">
-                {matchedSchemes.length === 0 ? (
-                  <div className="border border-dashed border-zinc-850 rounded-2xl py-12 text-center text-xs text-zinc-555 bg-zinc-950/20">
-                    No active eligible schemes found. Change the state or land holding query to recheck.
+              {/* Right Column: Other Agricultural Schemes & Portals */}
+              <div className="space-y-6">
+                <div className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-200">🏛️ Central Schemes Directory</h3>
+                    <p className="text-xs text-zinc-500 mt-1">Explore and apply directly to national agricultural schemes from here.</p>
                   </div>
-                ) : (
-                  matchedSchemes.map((scheme: { id: string; name: string; eligibleState: string; description: string; benefitDetails: string; maxLandSizeHectares: number; }) => (
-                    <div key={scheme.id} className="border border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-6 backdrop-blur-md relative overflow-hidden">
-                      <div className="absolute top-0 right-0 bg-emerald-950/50 text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-3.5 py-1.5 border-l border-b border-emerald-800/40 rounded-bl-2xl">
-                        State: {scheme.eligibleState}
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-bold text-zinc-200">{scheme.name}</h4>
-                        <p className="text-xs text-zinc-400 leading-relaxed">{scheme.description}</p>
-                        
-                        <div className="bg-emerald-950/20 border border-emerald-800/20 p-4 rounded-xl space-y-1">
-                          <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Benefit Details:</span>
-                          <p className="text-xs text-zinc-300">{scheme.benefitDetails}</p>
+
+                  <div className="space-y-3.5">
+                    {[
+                      { name: "myScheme India Hub", desc: "Search eligibility for 100+ state & central farm schemes.", url: "https://www.myscheme.gov.in/" },
+                      { name: "e-NAM Portal", desc: "Online agriculture commodities trading and mandi price verification.", url: "https://enam.gov.in/" },
+                      { name: "Soil Health Card Portal", desc: "Generate dynamic macro-nutrient report and soil health recommendations.", url: "https://soilhealth.dac.gov.in/" },
+                      { name: "Kisan Machinery (SMAM)", desc: "Direct benefit subsidy for farm mechanization, tractors, and tools.", url: "https://agrimachinery.nic.in/" },
+                      { name: "PM Krishi Sinchayee Yojana", desc: "Micro-irrigation, drip system installations, and water subsidy portal.", url: "https://pmksy.gov.in/" },
+                    ].map((portal, idx) => (
+                      <div key={idx} className="border border-zinc-900 bg-zinc-950/30 rounded-2xl p-4 flex flex-col justify-between hover:border-zinc-800 transition-all">
+                        <div className="space-y-1">
+                          <h4 className="text-xs font-bold text-zinc-300">{portal.name}</h4>
+                          <p className="text-[11px] text-zinc-500 leading-relaxed">{portal.desc}</p>
                         </div>
-                        
-                        <div className="text-[10px] text-zinc-555 font-mono">
-                          Eligible Land Limit: &lt;= {scheme.maxLandSizeHectares} Hectares
+                        <div className="flex justify-end mt-3">
+                          <a
+                            href={portal.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:text-zinc-200 text-zinc-400 text-[10px] font-bold transition-all"
+                          >
+                            Access Portal ↗
+                          </a>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                    ))}
+                  </div>
+                </div>
               </div>
 
             </div>
