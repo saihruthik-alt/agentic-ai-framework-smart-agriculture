@@ -865,6 +865,11 @@ export default function Dashboard() {
       if (res.ok) {
         const data = await res.json();
         setCrops(data);
+        if (data.length > 0) {
+          setSelectedField(data[0].id || null);
+        } else {
+          setSelectedField(null);
+        }
       }
     } catch (e) {
       console.error("Error fetching crops", e);
@@ -2912,83 +2917,120 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               </div>
 
               {/* Grid data */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* Field Alpha Sensor Card */}
-                <div className={`border rounded-2xl p-5 transition-all ${
-                  selectedField === "alpha" ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-950/5" : "border-zinc-850 bg-[#0c0c12]/40"
-                }`}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Field 1 (Amaravati Chilli)</h4>
-                    <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+              {crops.length === 0 ? (
+                <div className="col-span-full border border-dashed border-zinc-800 bg-[#07070b]/60 rounded-3xl p-12 text-center flex flex-col items-center justify-center space-y-4">
+                  <div className="h-16 w-16 rounded-full bg-emerald-950/20 border border-emerald-900/40 flex items-center justify-center text-3xl">
+                    📡
                   </div>
-                  <div className="space-y-3.5 text-xs font-mono">
-                    <div className="flex justify-between border-b border-zinc-900 pb-2">
-                      <span className="text-zinc-500">Moisture:</span>
-                      <span className={`font-bold ${alphaMoisture < 30 ? "text-rose-400 font-bold" : "text-emerald-400"}`}>
-                        {alphaMoisture}% {alphaMoisture < 30 && "(Critical)"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Temperature:</span> <span className="font-semibold text-zinc-300">32.4°C</span></div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Nitrogen (N):</span> <span className="font-semibold text-zinc-300">32 mg/kg</span></div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Phosphorus (P):</span> <span className="font-semibold text-zinc-300">18 mg/kg</span></div>
-                    <div className="flex justify-between"><span className="text-zinc-500">Potassium (K):</span> <span className="font-semibold text-zinc-300">45 mg/kg</span></div>
-                  </div>
-                  <button
-                    onClick={triggerMoistureDrop}
-                    className="w-full mt-5 py-2.5 rounded-xl bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 text-rose-400 text-xs font-bold transition-all cursor-pointer"
-                  >
-                    Simulate Moisture Drop (Critical)
-                  </button>
-                </div>
-
-                {/* Field Beta Sensor Card */}
-                <div className={`border rounded-2xl p-5 transition-all ${
-                  selectedField === "beta" ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-950/5" : "border-zinc-850 bg-[#0c0c12]/40"
-                }`}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400">Field 2 (Karimnagar Rice)</h4>
-                    <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                  </div>
-                  <div className="space-y-3.5 text-xs font-mono">
-                    <div className="flex justify-between border-b border-zinc-900 pb-2">
-                      <span className="text-zinc-500">Moisture:</span>
-                      <span className="font-bold text-emerald-400">{betaMoisture}%</span>
-                    </div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Temperature:</span> <span className="font-semibold text-zinc-300">30.8°C</span></div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2">
-                      <span className="text-zinc-500">Nitrogen (N):</span>
-                      <span className={`font-bold ${nitrogenLevel < 10 ? "text-rose-400" : "text-zinc-300"}`}>
-                        {nitrogenLevel} mg/kg {nitrogenLevel < 10 && "(Low)"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-b border-zinc-900 pb-2"><span className="text-zinc-500">Phosphorus (P):</span> <span className="font-semibold text-zinc-300">24 mg/kg</span></div>
-                    <div className="flex justify-between"><span className="text-zinc-500">Potassium (K):</span> <span className="font-semibold text-zinc-300">42 mg/kg</span></div>
-                  </div>
-                  <button
-                    onClick={triggerNitrogenDrop}
-                    className="w-full mt-5 py-2.5 rounded-xl bg-amber-950/20 hover:bg-amber-950/40 border border-amber-900/40 text-amber-400 text-xs font-bold transition-all cursor-pointer"
-                  >
-                    Simulate Nitrogen Defect
-                  </button>
-                </div>
-
-                {/* Info Guide */}
-                <div className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-zinc-300 mb-3">📡 Simulation Details</h4>
-                    <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-                      Telemetry values are modeled dynamically on regional soil profiles: {REALISTIC_LOCATIONS[activeLocationIndex].name}. 
-                    </p>
-                    <p className="text-xs text-zinc-500 leading-relaxed">
-                      Defects alert the FastAPI AI engine which returns detailed recovery advice.
+                    <h3 className="text-sm font-bold text-zinc-200">No Crop Fields Mapped</h3>
+                    <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto leading-relaxed">
+                      Register a farm and plant/log a crop in the "Farm Fields" tab to initialize active IoT telemetry feeds.
                     </p>
                   </div>
-                  <div className="text-[11px] text-zinc-650 bg-zinc-950/40 border border-zinc-900 rounded-xl p-3.5">
-                    Lat: {REALISTIC_LOCATIONS[activeLocationIndex].latitude.toFixed(4)}, Long: {REALISTIC_LOCATIONS[activeLocationIndex].longitude.toFixed(4)}
+                  <button
+                    onClick={() => setActiveTab("farms")}
+                    className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Go to Farm Fields
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 col-span-full">
+                  {crops.map((crop, idx) => {
+                    const isSelected = selectedField === crop.id;
+                    const isMoistureCritical = idx === 0 ? alphaMoisture < 30 : false;
+                    const displayMoisture = idx === 0 ? alphaMoisture : 35 + (idx * 2) % 15;
+                    const displayN = idx === 0 ? nitrogenLevel : 28 + (idx * 3) % 15;
+                    const displayTemp = 29.5 + (idx * 1.2) % 5;
+                    const displayP = 18 + (idx * 2) % 10;
+                    const displayK = 40 + (idx * 3) % 12;
+                    
+                    return (
+                      <div 
+                        key={crop.id || idx}
+                        className={`border rounded-2xl p-5 transition-all ${
+                          isSelected ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-950/5" : "border-zinc-850 bg-[#0c0c12]/40"
+                        }`}
+                      >
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                            {crop.name} ({crop.variety})
+                          </h4>
+                          <span className={`h-2 w-2 rounded-full ${crop.status === "ACTIVE" || crop.status === "PLANTED" ? "bg-emerald-500" : "bg-zinc-650"}`}></span>
+                        </div>
+                        <div className="space-y-3.5 text-xs font-mono">
+                          <div className="flex justify-between border-b border-zinc-900 pb-2">
+                            <span className="text-zinc-500">Moisture:</span>
+                            <span className={`font-bold ${isMoistureCritical ? "text-rose-400 font-bold" : "text-emerald-400"}`}>
+                              {displayMoisture}% {isMoistureCritical && "(Critical)"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between border-b border-zinc-900 pb-2">
+                            <span className="text-zinc-500">Temperature:</span> 
+                            <span className="font-semibold text-zinc-300">{displayTemp.toFixed(1)}°C</span>
+                          </div>
+                          <div className="flex justify-between border-b border-zinc-900 pb-2">
+                            <span className="text-zinc-500">Nitrogen (N):</span>
+                            <span className={`font-bold ${(idx === 0 && nitrogenLevel < 10) ? "text-rose-400" : "text-zinc-300"}`}>
+                              {displayN} mg/kg {(idx === 0 && nitrogenLevel < 10) && "(Low)"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between border-b border-zinc-900 pb-2">
+                            <span className="text-zinc-500">Phosphorus (P):</span> 
+                            <span className="font-semibold text-zinc-300">{displayP} mg/kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">Potassium (K):</span> 
+                            <span className="font-semibold text-zinc-300">{displayK} mg/kg</span>
+                          </div>
+                        </div>
+                        
+                        {idx === 0 && (
+                          <div className="space-y-2 mt-5">
+                            <button
+                              onClick={triggerMoistureDrop}
+                              className="w-full py-2.5 rounded-xl bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 text-rose-400 text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Simulate Moisture Drop
+                            </button>
+                            <button
+                              onClick={triggerNitrogenDrop}
+                              className="w-full py-2.5 rounded-xl bg-amber-950/20 hover:bg-amber-950/40 border border-amber-900/40 text-amber-400 text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Simulate Nitrogen Defect
+                            </button>
+                          </div>
+                        )}
+                        {idx > 0 && (
+                          <button
+                            onClick={() => setSelectedField(crop.id || null)}
+                            className="w-full mt-5 py-2.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-zinc-800 text-zinc-400 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            Select Field Telemetry Feed
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Info Guide */}
+                  <div className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-300 mb-3">📡 Simulation Details</h4>
+                      <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+                        Telemetry values are modeled dynamically on regional soil profiles: {selectedFarm ? selectedFarm.locationName : REALISTIC_LOCATIONS[activeLocationIndex].name}. 
+                      </p>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Defects alert the FastAPI AI engine which returns detailed recovery advice.
+                      </p>
+                    </div>
+                    <div className="text-[11px] text-zinc-650 bg-zinc-950/40 border border-zinc-900 rounded-xl p-3.5">
+                      Lat: {selectedFarm ? selectedFarm.latitude.toFixed(4) : REALISTIC_LOCATIONS[activeLocationIndex].latitude.toFixed(4)}, Long: {selectedFarm ? selectedFarm.longitude.toFixed(4) : REALISTIC_LOCATIONS[activeLocationIndex].longitude.toFixed(4)}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Historical Telemetry Data Table */}
               <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6 space-y-4">
