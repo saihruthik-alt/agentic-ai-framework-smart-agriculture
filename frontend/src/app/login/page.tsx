@@ -10,18 +10,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showGooglePopup, setShowGooglePopup] = useState(false);
+  const [googleStep, setGoogleStep] = useState<"choose" | "custom">("choose");
+  const [customEmail, setCustomEmail] = useState("");
+  const [customName, setCustomName] = useState("");
 
-  const handleDeveloperGoogleLogin = async () => {
+  const executeGoogleLogin = async (email: string, name: string) => {
+    setShowGooglePopup(false);
     setError("");
     setLoading(true);
     try {
-      // Create a mock base64 Google token containing testing fields
       const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }));
       const payload = btoa(JSON.stringify({
-        email: "google_farmer_test@gmail.com",
-        name: "Google Persistent Farmer",
-        given_name: "GoogleFarmer",
-        sub: "mock-google-sub-777"
+        email: email.trim().toLowerCase(),
+        name: name,
+        given_name: name.split(" ")[0],
+        sub: "google-oauth-" + btoa(email).replace(/=/g, "")
       }));
       const mockGoogleToken = `${header}.${payload}.mock_signature`;
       await loginGoogle(mockGoogleToken);
@@ -135,7 +139,7 @@ export default function LoginPage() {
         <div className="space-y-4 flex flex-col items-center">
           <button
             type="button"
-            onClick={handleDeveloperGoogleLogin}
+            onClick={() => { setShowGooglePopup(true); setGoogleStep("choose"); }}
             className="w-full flex items-center justify-center gap-3 rounded-xl bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-200 py-3.5 text-xs font-bold transition-all cursor-pointer shadow-lg active:scale-[0.99] font-sans"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -157,6 +161,135 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {/* GOOGLE SIGN-IN SIMULATOR MODAL */}
+      {showGooglePopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="w-full max-w-[390px] border border-zinc-200 rounded-2xl bg-white p-8 text-left shadow-2xl relative font-sans text-zinc-900">
+            {/* Google Logo */}
+            <div className="flex justify-center mb-5">
+              <svg className="h-6 w-24" viewBox="0 0 74 24" fill="none">
+                <path d="M7.8 14.2c-1.3 0-2.4-.4-3.2-1.3C3.8 12 3.4 11 3.4 9.7c0-1.3.4-2.3 1.2-3.2.8-.9 1.9-1.3 3.2-1.3 1.1 0 2 .3 2.7 1 .7.7 1.1 1.6 1.1 2.8v.5H6.3c.1.9.4 1.5 1 2 .6.4 1.2.6 1.9.6.9 0 1.6-.2 2.1-.7l.9.9c-.8.9-1.9 1.5-3.3 1.5zm2.7-6.2c0-.6-.2-1.1-.6-1.5-.4-.4-1-.6-1.7-.6s-1.3.2-1.7.6c-.4.4-.6 1-.6 1.5h4.6zm6.3 6.2c-1.3 0-2.4-.4-3.2-1.3-.8-.9-1.2-1.9-1.2-3.2c0-1.3.4-2.3 1.2-3.2.8-.9 1.9-1.3 3.2-1.3 1.3 0 2.4.4 3.2 1.3.8.9 1.2 1.9 1.2 3.2c0 1.3-.4 2.3-1.2 3.2-.8.9-1.9 1.3-3.2 1.3zm0-1.8c.7 0 1.3-.3 1.7-.8s.6-1.2.6-2c0-.8-.2-1.4-.6-2-.4-.5-1-.8-1.7-.8s-1.3.3-1.7.8c-.4.5-.6 1.2-.6 2 0 .8.2 1.4.6 2 .4.5 1 .8 1.7.8zm9 8.2c.4.3 1 .4 1.6.4 1 0 1.7-.3 2.3-.9.6-.6.9-1.4.9-2.5V10h-3.1v1.5h1.6V17c-.2.5-.5.9-1 1.2-.4.3-.9.4-1.5.4-.5 0-1-.1-1.4-.4l-.5 1.1zm2.3-12.8c-1.3 0-2.4-.4-3.2-1.3-.8-.9-1.2-1.9-1.2-3.2s.4-2.3 1.2-3.2c.8-.9 1.9-1.3 3.2-1.3s2.4.4 3.2 1.3c.8.9 1.2 1.9 1.2 3.2s-.4 2.3-1.2 3.2c-.8.9-1.9 1.3-3.2 1.3zm0-1.8c.7 0 1.3-.3 1.7-.8s.6-1.2.6-2c0-.8-.2-1.4-.6-2-.4-.5-1-.8-1.7-.8s-1.3.3-1.7.8c-.4.5-.6 1.2-.6 2 0 .8.2 1.4.6 2 .4.5 1 .8 1.7.8zm6.5 7.8V3.5h1.5v10.5h-1.5zm6.3-5.2V3.5h1.5v10.5h-1.5z" fill="#757575"/>
+              </svg>
+            </div>
+
+            {googleStep === "choose" ? (
+              <>
+                <h3 className="text-xl text-center text-[#202124] font-normal mb-1">Choose an account</h3>
+                <p className="text-xs text-center text-[#5f6368] mb-6">to continue to <span className="font-semibold text-emerald-600">AgriAgent</span></p>
+
+                <div className="border border-zinc-200 rounded-xl overflow-hidden divide-y divide-zinc-100 max-h-56 overflow-y-auto mb-6">
+                  {/* Account 1: Saihruthik */}
+                  <div
+                    onClick={() => executeGoogleLogin("saihruthik2005@gmail.com", "Saihruthik")}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#f1f3f4] cursor-pointer transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-sm font-bold font-sans">
+                      S
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-xs font-bold text-[#3c4043]">Saihruthik</h4>
+                      <p className="text-[10px] text-[#5f6368]">saihruthik2005@gmail.com</p>
+                    </div>
+                  </div>
+
+                  {/* Account 2: Test Farmer */}
+                  <div
+                    onClick={() => executeGoogleLogin("google_farmer_test@gmail.com", "Google Persistent Farmer")}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#f1f3f4] cursor-pointer transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-[#10b981] text-white flex items-center justify-center text-sm font-bold font-sans">
+                      G
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-xs font-bold text-[#3c4043]">Google Persistent Farmer</h4>
+                      <p className="text-[10px] text-[#5f6368]">google_farmer_test@gmail.com</p>
+                    </div>
+                  </div>
+
+                  {/* Option: Use another account */}
+                  <div
+                    onClick={() => setGoogleStep("custom")}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#f1f3f4] cursor-pointer transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-zinc-100 text-zinc-650 flex items-center justify-center text-sm font-bold border border-zinc-200">
+                      👤
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-xs font-bold text-[#1a73e8]">Use another account</h4>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl text-center text-[#202124] font-normal mb-1">Sign in</h3>
+                <p className="text-xs text-center text-[#5f6368] mb-6">Use your Google Account</p>
+
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-[10px] text-[#5f6368] font-bold mb-1">EMAIL ADDRESS</label>
+                    <input
+                      type="email"
+                      required
+                      value={customEmail}
+                      onChange={(e) => setCustomEmail(e.target.value)}
+                      placeholder="name@gmail.com"
+                      className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-955 focus:border-[#1a73e8] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-[#5f6368] font-bold mb-1">YOUR NAME</label>
+                    <input
+                      type="text"
+                      required
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      placeholder="e.g. Ram Charan"
+                      className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-955 focus:border-[#1a73e8] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={() => setGoogleStep("choose")}
+                    className="text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!customEmail || !customName}
+                    onClick={() => executeGoogleLogin(customEmail, customName)}
+                    className="px-6 py-2 rounded bg-[#1a73e8] text-white text-xs font-semibold hover:bg-[#1557b0] transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-between items-center text-[10px] text-[#70757a] border-t border-zinc-150 pt-4 mt-6">
+              <span>English (United States)</span>
+              <div className="flex gap-2">
+                <span className="hover:underline cursor-pointer">Help</span>
+                <span className="hover:underline cursor-pointer">Privacy</span>
+                <span className="hover:underline cursor-pointer">Terms</span>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowGooglePopup(false)}
+              className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-655 text-sm font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
