@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,6 +64,33 @@ public class AuthController {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage() != null ? e.getMessage() : "Google authentication failed.");
             return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request, java.security.Principal principal) {
+        if (principal == null) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Unauthorized access.");
+            return ResponseEntity.status(401).body(error);
+        }
+        
+        String newPassword = request.get("password");
+        if (newPassword == null || newPassword.trim().length() < 6) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Password must be at least 6 characters long.");
+            return ResponseEntity.badRequest().body(error);
+        }
+        
+        try {
+            authService.updatePassword(principal.getName(), newPassword);
+            Map<String, String> success = new HashMap<>();
+            success.put("message", "Password updated successfully.");
+            return ResponseEntity.ok(success);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 }

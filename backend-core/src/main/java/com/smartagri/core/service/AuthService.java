@@ -207,4 +207,13 @@ public class AuthService {
             throw new IllegalArgumentException("Failed to authenticate with Google: " + e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public void updatePassword(String username, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
