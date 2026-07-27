@@ -482,6 +482,7 @@ export default function Dashboard() {
   }, [user, authLoading, router]);
 
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [cropSubTopic, setCropSubTopic] = useState("register");
   const [agentLogs, setAgentLogs] = useState(INITIAL_AGENT_LOGS);
   const [coreHealth, setCoreHealth] = useState<ServiceHealth | null>(null);
   const [aiHealth, setAiHealth] = useState<ServiceHealth | null>(null);
@@ -2605,10 +2606,32 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
           {activeTab === "crops" && (
             <div className="space-y-8">
               
-              {/* Top Section: Farms & Crops CRUD */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Farm Registration Column */}
-                <div className="space-y-6">
+              {/* Segmented Sub-topics switch */}
+              <div className="flex gap-3 border-b border-zinc-850 pb-4">
+                <button
+                  onClick={() => setCropSubTopic("register")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                    cropSubTopic === "register"
+                      ? "bg-emerald-950/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+                      : "bg-zinc-900/30 text-zinc-450 border-zinc-850 hover:text-zinc-200"
+                  }`}
+                >
+                  🏡 Register Farm
+                </button>
+                <button
+                  onClick={() => setCropSubTopic("planner")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                    cropSubTopic === "planner"
+                      ? "bg-emerald-950/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+                      : "bg-zinc-900/30 text-zinc-450 border-zinc-850 hover:text-zinc-200"
+                  }`}
+                >
+                  📊 Crop Decision Planner & Cultivation Cost Calculator
+                </button>
+              </div>
+
+              {cropSubTopic === "register" &&
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Select Farm */}
                   <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6 space-y-4">
                     <h3 className="text-sm font-bold text-zinc-200">Select Active Farm</h3>
@@ -2647,7 +2670,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                   </div>
 
                   {/* Add Farm Form */}
-                  <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
+                  <div className="lg:col-span-2 border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
                     <h3 className="text-sm font-bold text-zinc-200 mb-4">Register New Farm Profile</h3>
                     
                     {farmError && <div className="text-xs text-rose-400 mb-3">{farmError}</div>}
@@ -2715,13 +2738,29 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                     </form>
                   </div>
                 </div>
+              }
 
-                {/* Planted Crops Table & Add Crop Form */}
-                <div className="lg:col-span-2 space-y-6">
-                  {selectedFarm ? (
+              {cropSubTopic === "planner" &&
+                <div className="space-y-8">
+                  {!selectedFarm ? (
+                    <div className="text-center py-12 text-zinc-400 text-xs border border-dashed border-zinc-850 bg-[#090910]/40 rounded-3xl space-y-3">
+                      <span className="text-xl block">⚠️</span>
+                      <p className="font-semibold text-zinc-300">No Active Farm Selected</p>
+                      <p className="text-zinc-500 max-w-sm mx-auto">
+                        Please go to the <span className="text-emerald-400 font-bold">"Register Farm"</span> subtopic first, select or register a farm profile, then return here to plan crops and calculate costs.
+                      </p>
+                      <button
+                        onClick={() => setCropSubTopic("register")}
+                        className="mt-2 px-4 py-2 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-bold rounded-xl hover:text-emerald-400 transition-colors"
+                      >
+                        Go to Register Farm
+                      </button>
+                    </div>
+                  ) : (
                     <>
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                       {/* Crops table */}
-                      <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
+                      <div className="lg:col-span-2 border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
                         <div>
                           <h3 className="text-sm font-bold text-zinc-200">Active Crops - {selectedFarm.name}</h3>
                           <p className="text-[11px] text-zinc-500 mb-4">Mapped to: {selectedFarm.locationName}</p>
@@ -2851,14 +2890,11 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                           </div>
                         </form>
                       </div>
+                      </div>
                     </>
-                  ) : (
-                    <div className="text-center py-12 text-zinc-550 text-sm border border-dashed border-zinc-850 rounded-3xl">
-                      Register a Farm Profile in the left column first to unlock crop management.
-                    </div>
                   )}
                 </div>
-              </div>
+              }
 
               {/* Bottom Section: Crop Season Decision Planner, Resource Calculator & Profitability Index */}
               <div className="border border-zinc-800 bg-[#0c0c12]/40 rounded-3xl p-8 space-y-6">
