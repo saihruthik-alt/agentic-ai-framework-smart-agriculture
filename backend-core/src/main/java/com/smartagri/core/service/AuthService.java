@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -129,42 +130,76 @@ public class AuthService {
             }
 
             String finalName = name;
-            User user = userRepository.findByEmail(finalEmail)
-                    .orElseGet(() -> {
-                        // Generate a unique username if the default one is already taken
-                        String username = finalName.replaceAll("[^a-zA-Z0-9]", "");
-                        if (username.length() < 3) {
-                            username = "user_" + username;
-                        }
-                        if (username.length() > 40) {
-                            username = username.substring(0, 40);
-                        }
-                        
-                        String uniqueUsername = username;
-                        int suffix = 1;
-                        while (userRepository.existsByUsername(uniqueUsername)) {
-                            uniqueUsername = username + suffix;
-                            suffix++;
-                        }
-
-                        User newUser = User.builder()
-                                .username(uniqueUsername)
-                                .email(finalEmail)
-                                .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
-                                .role(User.Role.FARMER)
-                                .build();
-                        return userRepository.save(newUser);
-                    });
-
+            Optional<User> existingUserOpt = userRepository.findByEmail(finalEmail);
+            
+            if (existingUserOpt.isEmpty()) {
+                // If it is the first time
+                String chosenUsername = requestBody.get("username");
+                if (chosenUsername == null || chosenUsername.trim().isEmpty()) {
+                    String suggestedUsername = finalName.replaceAll("[^a-zA-Z0-9]", "");
+                    if (suggestedUsername.length() < 3) {
+                        suggestedUsername = "user_" + suggestedUsername;
+                    }
+                    if (suggestedUsername.length() > 40) {
+                        suggestedUsername = suggestedUsername.substring(0, 40);
+                    }
+                    
+                    String uniqueSuggested = suggestedUsername;
+                    int suffix = 1;
+                    while (userRepository.existsByUsername(uniqueSuggested)) {
+                        uniqueSuggested = suggestedUsername + suffix;
+                        suffix++;
+                    }
+                    
+                    return AuthResponse.builder()
+                            .needsUsername(true)
+                            .status("NEW_USER")
+                            .email(finalEmail)
+                            .username(uniqueSuggested)
+                            .build();
+                }
+                
+                String cleanUsername = chosenUsername.trim();
+                if (cleanUsername.length() < 3) {
+                    throw new IllegalArgumentException("Username must be at least 3 characters long");
+                }
+                if (userRepository.existsByUsername(cleanUsername)) {
+                    throw new IllegalArgumentException("Username is already taken");
+                }
+                
+                User newUser = User.builder()
+                        .username(cleanUsername)
+                        .email(finalEmail)
+                        .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
+                        .role(User.Role.FARMER)
+                        .build();
+                User savedUser = userRepository.save(newUser);
+                
+                UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getUsername());
+                String token = jwtService.generateToken(userDetails, savedUser.getId(), savedUser.getRole().name());
+                return AuthResponse.builder()
+                        .token(token)
+                        .userId(savedUser.getId())
+                        .username(savedUser.getUsername())
+                        .email(savedUser.getEmail())
+                        .role(savedUser.getRole().name())
+                        .needsUsername(false)
+                        .status("SUCCESS")
+                        .build();
+            }
+            
+            User user = existingUserOpt.get();
             UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
             String token = jwtService.generateToken(userDetails, user.getId(), user.getRole().name());
-
+            
             return AuthResponse.builder()
                     .token(token)
                     .userId(user.getId())
                     .username(user.getUsername())
                     .email(user.getEmail())
                     .role(user.getRole().name())
+                    .needsUsername(false)
+                    .status("SUCCESS")
                     .build();
         } catch (IllegalArgumentException e) {
             throw e;

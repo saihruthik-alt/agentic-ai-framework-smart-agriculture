@@ -17,6 +17,9 @@ export default function RegisterPage() {
   const [customEmail, setCustomEmail] = useState("");
   const [customName, setCustomName] = useState("");
   
+  const [promptUsernameInfo, setPromptUsernameInfo] = useState<{ credential: string, suggestedUsername: string } | null>(null);
+  const [chosenUsername, setChosenUsername] = useState("");
+  
   const [googleClientId, setGoogleClientId] = useState<string>("");
   const [showConfig, setShowConfig] = useState(false);
 
@@ -53,7 +56,15 @@ export default function RegisterPage() {
             setError("");
             setLoading(true);
             try {
-              await loginGoogle(response.credential);
+              const resData = await loginGoogle(response.credential);
+              if (resData && resData.needsUsername) {
+                setPromptUsernameInfo({
+                  credential: response.credential,
+                  suggestedUsername: resData.username
+                });
+                setChosenUsername(resData.username);
+                setLoading(false);
+              }
             } catch (err) {
               const errMsg = err instanceof Error ? err.message : "Google registration failed.";
               setError(errMsg);
@@ -91,10 +102,37 @@ export default function RegisterPage() {
         sub: "google-oauth-" + btoa(email).replace(/=/g, "")
       }));
       const mockGoogleToken = `${header}.${payload}.mock_signature`;
-      await loginGoogle(mockGoogleToken);
+      const resData = await loginGoogle(mockGoogleToken);
+      if (resData && resData.needsUsername) {
+        setPromptUsernameInfo({
+          credential: mockGoogleToken,
+          suggestedUsername: resData.username
+        });
+        setChosenUsername(resData.username);
+        setLoading(false);
+      }
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : "Google registration failed.";
       setError(errMsg);
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteGoogleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promptUsernameInfo) return;
+    setError("");
+    setLoading(true);
+    try {
+      const res = await loginGoogle(promptUsernameInfo.credential, chosenUsername);
+      if (res && res.needsUsername) {
+        setError("Username is already taken. Please choose another one.");
+        setLoading(false);
+      } else {
+        setPromptUsernameInfo(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to set username.");
       setLoading(false);
     }
   };
@@ -437,7 +475,60 @@ export default function RegisterPage() {
           </div>
         </div>
       )}
-    
+
+      {/* Google Sign-Up Username Prompt Modal */}
+      {promptUsernameInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative w-[400px] rounded-3xl bg-zinc-950 border border-zinc-800 p-8 shadow-2xl space-y-6">
+            <div className="text-center space-y-2">
+              <div className="inline-flex h-12 w-12 rounded-full bg-emerald-950/40 text-emerald-400 items-center justify-center text-xl border border-emerald-800/30">
+                👤
+              </div>
+              <h3 className="text-lg font-bold text-zinc-100">Create Your Username</h3>
+              <p className="text-xs text-zinc-400">
+                Welcome! Since this is your first time signing in with Google, please choose a unique username to complete registration.
+              </p>
+            </div>
+
+            <form onSubmit={handleCompleteGoogleSignup} className="space-y-4">
+              <div>
+                <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-2">Chosen Username</label>
+                <input
+                  type="text"
+                  required
+                  value={chosenUsername}
+                  onChange={(e) => setChosenUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))}
+                  placeholder="e.g. saihruthik2005"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-650 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-900 bg-red-950/20 px-4 py-2.5 text-xs text-red-400 text-center">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPromptUsernameInfo(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-zinc-800 text-zinc-300 text-xs font-semibold hover:bg-zinc-900 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={chosenUsername.trim().length < 3 || loading}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {loading ? "Registering..." : "Finish Sign Up"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
