@@ -623,6 +623,7 @@ export default function Dashboard() {
     ]
   });
   const [chatViewActive, setChatViewActive] = useState(false);
+  const [selectedChatCrop, setSelectedChatCrop] = useState<string>("");
   const [sendingQuery, setSendingQuery] = useState(false);
 
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -1484,7 +1485,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
     const query = chatMessage;
     setChatMessage("");
 
-    const activeCropName = crops.length > 0 ? crops[0].name : (AVAILABLE_CROPS[activePlaybookCropIdx]?.value || "Rice");
+    const activeCropName = selectedChatCrop || (crops.length > 0 ? crops[0].name : (AVAILABLE_CROPS[activePlaybookCropIdx]?.value || "Rice"));
     const activeLat = selectedFarm ? selectedFarm.latitude : REALISTIC_LOCATIONS[activeLocationIndex].latitude;
     const activeLon = selectedFarm ? selectedFarm.longitude : REALISTIC_LOCATIONS[activeLocationIndex].longitude;
     const activeHectares = selectedFarm ? selectedFarm.totalAreaHectares : 5.0;
@@ -2234,6 +2235,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                         key={i}
                         onClick={() => {
                           setSelectedChatAgent(agent.name);
+                          setSelectedChatCrop(crops.length > 0 ? crops[0].name : "Rice");
                           setChatViewActive(true);
                         }}
                         className="border border-zinc-800 bg-[#0c0c12]/40 hover:border-zinc-700 rounded-2xl p-5 transition-all cursor-pointer flex flex-col justify-between hover:shadow-[0_4px_20px_rgba(16,185,129,0.05)] hover:border-emerald-500/40 group"
@@ -2267,16 +2269,66 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
 
                   {/* Chat room */}
                   <div className="border border-zinc-850 bg-[#090910]/80 rounded-3xl p-6 space-y-4">
-                    <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-zinc-800 pb-4 gap-4">
                       <div>
                         <h3 className="text-sm font-bold text-zinc-200">{selectedChatAgent} Chatroom</h3>
                         <p className="text-xs text-zinc-500 mt-1">
-                          Active Context: <span className="text-emerald-400 font-semibold">{selectedFarm ? selectedFarm.name : "Default Farm"}</span> | Crop: <span className="text-emerald-400 font-semibold">{crops.length > 0 ? crops[0].name : "Rice"}</span>
+                          Active Context: <span className="text-emerald-400 font-semibold">{selectedFarm ? selectedFarm.name : "Default Farm"}</span> | Crop: <span className="text-emerald-400 font-semibold">{selectedChatCrop || (crops.length > 0 ? crops[0].name : "Rice")}</span>
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Agent Online</span>
+                      
+                      <div className="flex flex-wrap items-center gap-3">
+                        {/* Farm Selector */}
+                        <div className="flex items-center gap-1.5 text-xs bg-[#0c0c12] border border-zinc-800 px-2.5 py-1.5 rounded-xl">
+                          <span className="text-zinc-500 font-bold uppercase text-[9px]">Farm:</span>
+                          <select
+                            value={selectedFarm?.id || ""}
+                            onChange={(e) => {
+                              const farm = farms.find((f) => f.id === e.target.value);
+                              if (farm) {
+                                setSelectedFarm(farm);
+                                fetchCrops(farm.id);
+                                fetchTelemetry(farm.id);
+                              }
+                            }}
+                            className="bg-transparent text-emerald-400 font-semibold focus:outline-none cursor-pointer text-xs"
+                          >
+                            {farms.length === 0 ? (
+                              <option value="">No Farms</option>
+                            ) : (
+                              farms.map((f) => (
+                                <option key={f.id} value={f.id} className="bg-zinc-950 text-zinc-200">
+                                  {f.name}
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        </div>
+
+                        {/* Crop Selector */}
+                        <div className="flex items-center gap-1.5 text-xs bg-[#0c0c12] border border-zinc-800 px-2.5 py-1.5 rounded-xl">
+                          <span className="text-zinc-555 font-bold uppercase text-[9px]">Crop:</span>
+                          <select
+                            value={selectedChatCrop}
+                            onChange={(e) => setSelectedChatCrop(e.target.value)}
+                            className="bg-transparent text-emerald-400 font-semibold focus:outline-none cursor-pointer text-xs"
+                          >
+                            {crops.length === 0 ? (
+                              <option value="Rice">Rice (Default)</option>
+                            ) : (
+                              crops.map((c, idx) => (
+                                <option key={idx} value={c.name} className="bg-zinc-950 text-zinc-200">
+                                  {c.name} ({c.variety})
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-2 border border-zinc-800 bg-zinc-900/30 px-3 py-1.5 rounded-xl">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Agent Online</span>
+                        </div>
                       </div>
                     </div>
 
