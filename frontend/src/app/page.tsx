@@ -602,6 +602,26 @@ export default function Dashboard() {
   const [chatResponses, setChatResponses] = useState<{ sender: string; text: string }[]>([
     { sender: "System", text: "Connected to Agent Reasoning Core. Choose an agent and type your query." }
   ]);
+  const [agentChats, setAgentChats] = useState<{ [agent: string]: { sender: string; text: string }[] }>({
+    "Weather Agent": [
+      { sender: "Weather Agent", text: "Hello! I am your Weather Forecast Agent. Ask me about weather conditions, rain forecasts, or precautions for your selected crop." }
+    ],
+    "Irrigation Agent": [
+      { sender: "Irrigation Agent", text: "Hello! I am your Irrigation Agent. Ask me if your selected crop needs water today, how much to irrigate, or sprinkler schedules." }
+    ],
+    "Fertilizer Agent": [
+      { sender: "Fertilizer Agent", text: "Hello! I am your Soil Nutrition Agent. Ask me which NPK fertilizers to apply and estimated costs for your crop." }
+    ],
+    "Disease Vision Agent": [
+      { sender: "Disease Vision Agent", text: "Hello! I am your Leaf pathology scanner. Upload or choose a leaf sample below to classify rust, spot, blight, or pests." }
+    ],
+    "Inventory Agent": [
+      { sender: "Inventory Agent", text: "Hello! I am your Resource Inventory Agent. Ask me about seeds, fertilizers, pesticides, tools, or check if stocks are low." }
+    ],
+    "Market Agent": [
+      { sender: "Market Agent", text: "Hello! I am your Mandi Price Scraper Agent. Ask me about mandi prices, trends, or when to sell your harvest." }
+    ]
+  });
   const [sendingQuery, setSendingQuery] = useState(false);
 
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -634,10 +654,13 @@ export default function Dashboard() {
         
         if (data.agent === "Orchestrator") {
           setSendingQuery(false);
-          setChatResponses((prev) => [
+          setAgentChats((prev) => ({
             ...prev,
-            { sender: selectedChatAgent, text: `${data.message}` }
-          ]);
+            [selectedChatAgent]: [
+              ...(prev[selectedChatAgent] || []),
+              { sender: selectedChatAgent, text: `${data.message}` }
+            ]
+          }));
         }
       } catch (err) {
         console.error("Error parsing socket frame:", err);
@@ -1452,7 +1475,10 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
     if (!chatMessage.trim()) return;
 
     const userMsg = { sender: "You", text: chatMessage };
-    setChatResponses((prev) => [...prev, userMsg]);
+    setAgentChats((prev) => ({
+      ...prev,
+      [selectedChatAgent]: [...(prev[selectedChatAgent] || []), userMsg]
+    }));
     setSendingQuery(true);
     const query = chatMessage;
     setChatMessage("");
@@ -1500,7 +1526,13 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
           replyText = "Sensor networks are virtual simulation nodes and are fully synchronized with our agricultural database.";
         }
 
-        setChatResponses((prev) => [...prev, { sender: selectedChatAgent, text: replyText }]);
+        setAgentChats((prev) => ({
+          ...prev,
+          [selectedChatAgent]: [
+            ...(prev[selectedChatAgent] || []),
+            { sender: selectedChatAgent, text: replyText }
+          ]
+        }));
         setSendingQuery(false);
       }, 1000);
     }
@@ -2234,13 +2266,15 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                     <option value="Weather Agent">Weather Agent</option>
                     <option value="Irrigation Agent">Irrigation Agent</option>
                     <option value="Fertilizer Agent">Fertilizer Agent</option>
+                    <option value="Disease Vision Agent">Disease Vision Agent</option>
+                    <option value="Inventory Agent">Inventory Agent</option>
                     <option value="Market Agent">Market Agent</option>
                   </select>
                 </div>
 
                 {/* Messages Box */}
                 <div className="h-48 overflow-y-auto border border-zinc-850 bg-zinc-950/40 rounded-2xl p-4 space-y-3 custom-scrollbar text-xs font-mono">
-                  {chatResponses.map((msg, index) => (
+                  {(agentChats[selectedChatAgent] || []).map((msg, index) => (
                     <div key={index} className={`flex flex-col ${msg.sender === "You" ? "items-end" : "items-start"}`}>
                       <span className="text-[9px] text-zinc-500 mb-0.5">{msg.sender}</span>
                       <div className={`rounded-xl px-4 py-2 max-w-md ${
