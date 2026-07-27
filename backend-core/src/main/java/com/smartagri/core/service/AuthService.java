@@ -34,12 +34,12 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        String username = request.getUsername().trim().toLowerCase();
+        String username = request.getUsername().trim();
         String email = request.getEmail().trim().toLowerCase();
-        if (userRepository.existsByUsername(username)) {
+        if (userRepository.existsByUsernameIgnoreCase(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
@@ -72,9 +72,9 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        String searchKey = request.getUsername().trim().toLowerCase();
-        User user = userRepository.findByUsername(searchKey)
-                .or(() -> userRepository.findByEmail(searchKey))
+        String searchKey = request.getUsername().trim();
+        User user = userRepository.findByUsernameIgnoreCase(searchKey)
+                .or(() -> userRepository.findByEmailIgnoreCase(searchKey))
                 .orElseThrow(() -> new IllegalArgumentException("Username or email not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {

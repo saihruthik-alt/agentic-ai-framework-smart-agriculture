@@ -1663,13 +1663,17 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
         },
         body: JSON.stringify({ password: newPassword })
       });
+      
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update password.");
+      }
+      
       setPasswordSuccess("Password updated successfully!");
       setNewPassword("");
       setConfirmPassword("");
-    } catch {
-      setPasswordSuccess("Password updated successfully! (Local Session Sync)");
-      setNewPassword("");
-      setConfirmPassword("");
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : "Failed to update password.");
     }
   };
 
