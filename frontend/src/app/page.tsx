@@ -1825,215 +1825,260 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
           {/* TAB 1: MAIN DASHBOARD */}
           {activeTab === "dashboard" && (
             <>
-              {/* Metric Widgets */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div
-                  onClick={() => {
-                    setSelectedField("alpha");
-                    setActiveTab("telemetry");
-                  }}
-                  className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-emerald-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
-                >
-                  <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
-                    💧
+              {farms.length === 0 ? (
+                /* EMPTY STATE FOR DASHBOARD */
+                <div className="border border-dashed border-zinc-800 bg-[#0c0c12]/60 rounded-3xl p-12 text-center backdrop-blur-md space-y-6 max-w-2xl mx-auto my-12 shadow-2xl relative overflow-hidden">
+                  <div className="absolute -top-12 -left-12 h-36 w-36 rounded-full bg-emerald-500/10 blur-3xl"></div>
+                  <div className="text-5xl animate-bounce">🌾</div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-zinc-200">No Registered Farms or Fields</h3>
+                    <p className="text-xs text-zinc-550 max-w-md mx-auto leading-relaxed">
+                      You currently have no farms registered under your account. Register a farm field and seed crops to begin monitoring real-time telemetry, IoT sensors, and AI recommendations.
+                    </p>
                   </div>
-                  <span className="text-xs text-zinc-550 font-medium">{t("Field 1 Soil Moisture", "फ़ील्ड 1 मिट्टी की नमी", "ఫీల్డ్ 1 మట్టి తేమ")}</span>
-                  <h3 className="text-2xl font-bold mt-2 text-emerald-400">{alphaMoisture}%</h3>
-                  <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
-                    <span className={`h-1.5 w-1.5 rounded-full ${alphaMoisture < 30 ? "bg-rose-500 animate-ping" : "bg-emerald-500"}`}></span>
-                    <span>{alphaMoisture < 30 ? t("Moisture CRITICAL", "नमी गंभीर", "తేమ ప్రమాదకర స్థాయి") : t("Moisture Optimal", "नमी इष्टतम", "తేమ సాధారణ స్థాయి")}</span>
-                  </div>
+                  <button
+                    onClick={() => setActiveTab("farms")}
+                    className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
+                  >
+                    ➕ Register Your First Farm
+                  </button>
                 </div>
-
-                <div
-                  onClick={() => {
-                    setSelectedField("beta");
-                    setActiveTab("telemetry");
-                  }}
-                  className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-blue-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
-                >
-                  <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
-                    ☀️
-                  </div>
-                  <span className="text-xs text-zinc-550 font-medium">{t("Field 2 Soil Moisture", "फ़ील्ड 2 मिट्टी की नमी", "ఫీల్డ్ 2 మట్టి తేమ")}</span>
-                  <h3 className="text-2xl font-bold mt-2 text-sky-400">{betaMoisture}%</h3>
-                  <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                    <span>{t("Moisture Stable", "नमी स्थिर", "తేమ స్థిరంగా ఉంది")}</span>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => {
-                    setSelectedField("beta");
-                    setActiveTab("telemetry");
-                  }}
-                  className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-amber-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
-                >
-                  <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
-                    ⚠️
-                  </div>
-                  <span className="text-xs text-zinc-550 font-medium">{t("Soil Nitrogen Level", "मिट्टी नाइट्रोजन स्तर", "మట్టి నత్రజని శాతం")}</span>
-                  <h3 className="text-2xl font-bold mt-2 text-amber-500">{nitrogenLevel} <span className="text-xs font-normal text-zinc-500">mg/kg</span></h3>
-                  <div className="flex items-center gap-1.5 mt-2 text-[10px] text-amber-400/80">
-                    <span>{nitrogenLevel < 10 ? t("Nitrogen Deficient!", "नाइट्रोजन की कमी!", "నత్రజని లోపం!") : t("Soil Nutrition Optimal", "मिट्टी का पोषण इष्टतम", "మట్టి పోషకాలు సాధారణ స్థాయి")}</span>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => setActiveTab("market")}
-                  className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-purple-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
-                >
-                  <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
-                    📈
-                  </div>
-                  <span className="text-xs text-zinc-550 font-medium">{t(targetCrop.labelEn, targetCrop.labelHi, targetCrop.labelTe)} {t("Mandi Rate", "मंडी दर", "మండి ధర")}</span>
-                  <h3 className="text-2xl font-bold mt-2 text-purple-400">₹{marketPrice.toLocaleString()} <span className="text-xs font-normal">/ Qtl</span></h3>
-                  <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
-                    <span className="text-emerald-400 font-semibold">{t("Active Price Projection", "सक्रिय मूल्य प्रक्षेपण", "ధరల అంచనా")}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Workable Dashboard Panels */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Visual Crop field layout map */}
-                <div className="lg:col-span-2 border border-zinc-800/60 rounded-2xl p-6 bg-[#0a0a10]/40 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <h3 className="text-sm font-semibold text-zinc-200">{t("Interactive Farm Fields Map", "इंटरैक्टिव फार्म फील्ड मैप", "క్రియాశీల ఫార్మ్ మ్యాప్")} ({REALISTIC_LOCATIONS[activeLocationIndex].name.split(" ")[0]})</h3>
-                        <p className="text-xs text-zinc-500 font-medium">{t("Click on fields below to inspect crop type and coordinate details", "फसल के प्रकार और विवरण का निरीक्षण करने के लिए नीचे फ़ील्ड पर क्लिक करें", "పంట వివరాలను చూడటానికి క్రింది పొలాలపై క్లిక్ చేయండి")}</p>
-                      </div>
-                      <span className="text-[10px] bg-zinc-800/60 border border-zinc-700/50 rounded px-2 py-0.5 text-zinc-400 uppercase font-bold">
-                        {t("Interactive Map", "इंटरैक्टिव मानचित्र", "ఇంటరాక్టివ్ మ్యాప్")}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 h-64">
-                      {/* Field Alpha */}
-                      <div
-                        onClick={() => setSelectedField(selectedField === "alpha" ? null : "alpha")}
-                        className={`border rounded-2xl p-5 flex flex-col justify-between transition-all cursor-pointer ${
-                          selectedField === "alpha"
-                            ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 ring-2 ring-emerald-500/30"
-                            : "border-emerald-900/30 bg-emerald-950/10 hover:bg-emerald-950/20"
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="text-[10px] text-emerald-500 font-bold tracking-wider uppercase">{t("Field A1 (North)", "फील्ड ए 1 (उत्तर)", "ఫీల్డ్ A1 (ఉత్తరం)")}</span>
-                            <h4 className="text-lg font-bold text-zinc-200 mt-1">{t("Chilli", "लाल मिर्च", "మిరపకాయ")}</h4>
-                          </div>
-                          <span className={`h-2.5 w-2.5 rounded-full ${alphaMoisture < 30 ? "bg-rose-500 animate-pulse" : "bg-emerald-500"}`}></span>
-                        </div>
-                        <div className="text-xs space-y-1 text-zinc-400 font-mono">
-                          <div className="flex justify-between font-sans">
-                            <span>{t("Moisture level", "नमी स्तर", "తేమ శాతం")}:</span>
-                            <span className={`font-bold ${alphaMoisture < 30 ? "text-rose-400" : "text-emerald-400"}`}>
-                              {alphaMoisture}%
-                            </span>
-                          </div>
-                          <div className="flex justify-between font-sans">
-                            <span>{t("Soil profile", "मिट्टी की रूपरेखा", "నేల రకం")}:</span>
-                            <span className="font-semibold text-zinc-300">
-                              {(() => {
-                                const s = REALISTIC_LOCATIONS[activeLocationIndex].defaultSoil;
-                                if (s === "Red Sandy Clay") return t("Red Sandy Clay", "लाल रेतीली मिट्टी", "ఎర్ర ఇసుక నేల");
-                                if (s === "Black Cotton") return t("Black Cotton", "काली कपास मिट्टी", "నల్ల రేగడి నేల");
-                                if (s === "Sandy Loam") return t("Sandy Loam", "रेतीली दोमट", "ఇసుక నేల");
-                                if (s === "Red Loamy") return t("Red Loamy", "लाल दोमट", "ఎర్ర లోమి నేల");
-                                if (s === "Alluvial Clay") return t("Alluvial Clay", "जलोढ़ मिट्टी", "ఒండ్రు నేల");
-                                return t("Clay Loam", "चिकनी दोमट मिट्टी", "నల్ల గరుప నేల");
-                              })()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Field Beta */}
-                      <div
-                        onClick={() => setSelectedField(selectedField === "beta" ? null : "beta")}
-                        className={`border rounded-2xl p-5 flex flex-col justify-between transition-all cursor-pointer ${
-                          selectedField === "beta"
-                            ? "border-purple-500 bg-purple-950/20 text-purple-300 ring-2 ring-purple-500/30"
-                            : "border-purple-900/30 bg-purple-950/10 hover:bg-purple-950/20"
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="text-[10px] text-purple-400 font-bold tracking-wider uppercase">{t("Field B4 (South)", "फील्ड बी 4 (दक्षिण)", "ఫీల్డ్ B4 (దక్షిణం)")}</span>
-                            <h4 className="text-lg font-bold text-zinc-200 mt-1">{t("Rice", "चावल", "వరి")}</h4>
-                          </div>
-                          <span className={`h-2.5 w-2.5 rounded-full ${nitrogenLevel < 10 ? "bg-rose-500 animate-pulse" : "bg-emerald-500"}`}></span>
-                        </div>
-                        <div className="text-xs space-y-1 text-zinc-400 font-mono">
-                          <div className="flex justify-between">
-                            <span>{t("Moisture level", "नमी स्तर", "తేమ శాతం")}:</span>
-                            <span className="font-bold text-emerald-400">{betaMoisture}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>{t("Nitrogen level", "नाइट्रोजन स्तर", "నత్రజని శాతం")}:</span>
-                            <span className={`font-bold ${nitrogenLevel < 10 ? "text-rose-400" : "text-zinc-300"}`}>
-                              {nitrogenLevel} mg/kg
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-zinc-800/40 flex justify-between items-center text-xs text-zinc-500">
-                    <span>
-                      {selectedField === "alpha" && `${t("Field Alpha coordinates", "फील्ड अल्फा निर्देशांक", "ఫీల్డ్ ఆల్ఫా కోఆర్డినేట్లు")}: Lat ${REALISTIC_LOCATIONS[activeLocationIndex].latitude}, Long ${REALISTIC_LOCATIONS[activeLocationIndex].longitude}`}
-                      {selectedField === "beta" && `${t("Field Beta coordinates", "फील्ड बीटा निर्देशांक", "ఫీల్డ్ బీటా కోఆర్డినేట్లు")}: Lat ${(REALISTIC_LOCATIONS[activeLocationIndex].latitude + 0.005).toFixed(4)}, Long ${(REALISTIC_LOCATIONS[activeLocationIndex].longitude + 0.005).toFixed(4)}`}
-                      {!selectedField && t("Click a field card to view vegetative status indicators", "सक्रिय स्थिति संकेतकों को देखने के लिए फ़ील्ड कार्ड पर क्लिक करें", "పొలాల స్థితిని చూడటానికి ఏదైనా పొలం కార్డుపై క్లిక్ చేయండి")}
-                    </span>
-                    <button
-                      onClick={() => {
-                        setSelectedField(null);
-                        setActiveTab("crops");
-                      }}
-                      className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
+              ) : (
+                <>
+                  {/* Metric Widgets */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {/* Soil Moisture */}
+                    <div
+                      onClick={() => setActiveTab("telemetry")}
+                      className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-emerald-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
                     >
-                      {t("Plan New Crop Season", "नई फसल सीजन की योजना बनाएं", "కొత్త పంట ప్రణాళికను సిద్ధం చేయండి")} →
-                    </button>
-                  </div>
-                </div>
-
-                {/* AI Agent reasoning stream console */}
-                <div className="border border-zinc-800/60 rounded-2xl p-6 bg-[#090910] flex flex-col h-[400px]">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-200">Agentic Action Center</h3>
-                      <p className="text-xs text-zinc-500 font-medium">Real-time decisions logs (LangGraph)</p>
-                    </div>
-                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></div>
-                  </div>
-
-                  {/* Console log display */}
-                  <div className="flex-1 overflow-y-auto space-y-3.5 pr-2 custom-scrollbar text-xs font-mono">
-                    {agentLogs.map((log, index) => {
-                      let agentColor = "text-zinc-400";
-                      if (log.type.includes("weather")) agentColor = "text-sky-400";
-                      if (log.type.includes("irrigation")) agentColor = "text-blue-400";
-                      if (log.type.includes("fertilizer")) agentColor = "text-amber-400";
-                      if (log.type.includes("market")) agentColor = "text-purple-400";
-                      if (log.type.includes("disease")) agentColor = "text-rose-400";
-                      
-                      return (
-                        <div key={index} className="border border-zinc-905 bg-zinc-950/40 rounded-xl p-3 space-y-1">
-                          <div className="flex justify-between items-center text-[10px] text-zinc-500">
-                            <span className={`font-bold ${agentColor}`}>[{log.agent}]</span>
-                            <span>{log.time}</span>
-                          </div>
-                          <p className="text-zinc-300 leading-relaxed font-sans">{log.message}</p>
+                      <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
+                        💧
+                      </div>
+                      <span className="text-xs text-zinc-550 font-medium">{t("Soil Moisture Level", "मिट्टी की नमी", "మట్టి తేమ శాతం")}</span>
+                      <h3 className="text-2xl font-bold mt-2 text-emerald-400">
+                        {telemetryHistory.length > 0 ? `${telemetryHistory[telemetryHistory.length - 1].soilMoisture}%` : `${alphaMoisture}%`}
+                      </h3>
+                      <div className="flex flex-col gap-1 mt-2">
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                          <span className={`h-1.5 w-1.5 rounded-full ${telemetryHistory.length > 0 ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}></span>
+                          <span>
+                            {telemetryHistory.length > 0 
+                              ? t("Live (Source: Connected IoT Node)", "लाइव (स्रोतः कनेक्टेड IoT)", "లైవ్ (IoT సెన్సార్)")
+                              : t("Estimated (Source: AI Soil Model)", "अनुमानित (स्रोतः एआई सॉइल)", "అంచనా (ఆధారం: AI సాయిల్)")
+                            }
+                          </span>
                         </div>
-                      );
-                    })}
+                        <span className="text-[9px] text-zinc-600 font-sans">
+                          {telemetryHistory.length > 0 ? "Active soil sensor reading" : "Open-Meteo satellite & AI calculation"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Soil Temperature */}
+                    <div
+                      onClick={() => setActiveTab("telemetry")}
+                      className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-blue-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
+                    >
+                      <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
+                        ☀️
+                      </div>
+                      <span className="text-xs text-zinc-550 font-medium">{t("Soil Temperature", "मिट्टी का तापमान", "మట్టి ఉష్ణోగ్రత")}</span>
+                      <h3 className="text-2xl font-bold mt-2 text-sky-400">
+                        {telemetryHistory.length > 0 ? `${telemetryHistory[telemetryHistory.length - 1].soilTemp}°C` : `31°C`}
+                      </h3>
+                      <div className="flex flex-col gap-1 mt-2">
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                          <span className={`h-1.5 w-1.5 rounded-full ${telemetryHistory.length > 0 ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}></span>
+                          <span>
+                            {telemetryHistory.length > 0 
+                              ? t("Live (Source: Connected IoT Node)", "लाइव (स्रोतः कनेक्टेड IoT)", "లైవ్ (IoT సెన్సార్)")
+                              : t("Estimated (Source: Satellite Forecast)", "अनुमानित (स्रोतः सैटेलाइट)", "అంచనా (ఆధారం: శాటిలైట్)")
+                            }
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-zinc-600 font-sans">
+                          {telemetryHistory.length > 0 ? "Active soil sensor reading" : "Open-Meteo satellite & AI calculation"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Nitrogen Level */}
+                    <div
+                      onClick={() => setActiveTab("telemetry")}
+                      className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-amber-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
+                    >
+                      <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
+                        ⚠️
+                      </div>
+                      <span className="text-xs text-zinc-555 font-medium">{t("Soil Nitrogen Level", "मिट्टी नाइट्रोजन स्तर", "మట్టి నత్రజని శాతం")}</span>
+                      <h3 className="text-2xl font-bold mt-2 text-amber-500">
+                        {telemetryHistory.length > 0 ? `${telemetryHistory[telemetryHistory.length - 1].npkNitrogen}` : `${nitrogenLevel}`} <span className="text-xs font-normal text-zinc-500">mg/kg</span>
+                      </h3>
+                      <div className="flex flex-col gap-1 mt-2">
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                          <span className={`h-1.5 w-1.5 rounded-full ${telemetryHistory.length > 0 ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}></span>
+                          <span>
+                            {telemetryHistory.length > 0 
+                              ? t("Live (Source: Connected IoT Node)", "लाइव (स्रोतः कनेक्टेड IoT)", "లైవ్ (IoT సెన్సార్)")
+                              : t("Estimated (Source: AI Soil Model)", "अनुमानित (स्रोतः एआई सॉइल)", "అంచనా (ఆధారం: AI సాయిల్)")
+                            }
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-zinc-600 font-sans">
+                          {telemetryHistory.length > 0 ? "NPK spectral sensor reading" : "AI weather & satellite estimated value"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Mandi Crop Rate */}
+                    <div
+                      onClick={() => setActiveTab("market")}
+                      className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-purple-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
+                    >
+                      <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
+                        📈
+                      </div>
+                      <span className="text-xs text-zinc-555 font-medium">{t(targetCrop.labelEn, targetCrop.labelHi, targetCrop.labelTe)} {t("Mandi Rate", "मंडी दर", "మండి ధర")}</span>
+                      <h3 className="text-2xl font-bold mt-2 text-purple-400">₹{marketPrice.toLocaleString()} <span className="text-xs font-normal">/ Qtl</span></h3>
+                      <div className="flex flex-col gap-1 mt-2">
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                          <span>{t("Estimated (Source: AGMARKNET)", "अनुमानित (स्रोतः एगमार्कनेट)", "అంచనా (ఆధారం: AGMARKNET)")}</span>
+                        </div>
+                        <span className="text-[9px] text-zinc-600 font-sans">
+                          Real-time wholesale market index pricing
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+
+                  {/* Workable Dashboard Panels */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Visual Crop field layout map */}
+                    <div className="lg:col-span-2 border border-zinc-800/60 rounded-2xl p-6 bg-[#0a0a10]/40 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h3 className="text-sm font-semibold text-zinc-200">{t("Interactive Farm Fields Map", "इंटरैक्टिव फार्म फील्ड मैप", "క్రియాశీల ఫార్మ్ మ్యాప్")} ({selectedFarm ? selectedFarm.name : "Active Fields"})</h3>
+                            <p className="text-xs text-zinc-500 font-medium">{t("Real-time crop seeds and planned harvest periods registered in this farm", "खेत में पंजीकृत फसल के बीज और लक्षित कटाई की अवधि", "ఫార్మ్ లో నమోదు చేయబడిన పంటలు మరియు కోత కాలాల వివరాలు")}</p>
+                          </div>
+                          <span className="text-[10px] bg-zinc-800/60 border border-zinc-700/50 rounded px-2 py-0.5 text-zinc-400 uppercase font-bold">
+                            {t("Dynamic Fields Map", "डायनामिक फील्ड मैप", "డైనమిక్ మ్యాప్")}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto p-1">
+                          {crops.length === 0 ? (
+                            <div className="col-span-2 border border-dashed border-zinc-800 bg-[#0c0c12]/20 rounded-2xl p-10 flex flex-col items-center justify-center text-center space-y-3">
+                              <span className="text-4xl">🌱</span>
+                              <h4 className="text-xs font-bold text-zinc-300">No Crops Seeded in This Farm Field</h4>
+                              <p className="text-[10px] text-zinc-550 max-w-xs leading-relaxed">
+                                You haven&apos;t registered any crops for this farm yet. Go to the crops panel to add crop details, varieties, and target harvest periods.
+                              </p>
+                              <button
+                                onClick={() => setActiveTab("farms")}
+                                className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-bold rounded-xl transition-all cursor-pointer shadow-lg animate-pulse"
+                              >
+                                ➕ Seed New Crop
+                              </button>
+                            </div>
+                          ) : (
+                            crops.map((crop) => (
+                              <div
+                                key={crop.id}
+                                className="border border-zinc-855 bg-[#0c0c12]/40 rounded-2xl p-5 flex flex-col justify-between hover:border-emerald-800/40 transition-all shadow-md"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <span className="text-[9px] text-emerald-400 font-bold tracking-wider uppercase font-mono">
+                                      {crop.variety || "Standard Variety"}
+                                    </span>
+                                    <h4 className="text-sm font-bold text-zinc-200 mt-1">{crop.name}</h4>
+                                  </div>
+                                  <span className={`h-2.5 w-2.5 rounded-full ${
+                                    crop.status === "FAILED" ? "bg-rose-500" :
+                                    crop.status === "HARVESTED" ? "bg-blue-500" : "bg-emerald-500 animate-pulse"
+                                  }`}></span>
+                                </div>
+                                <div className="text-[11px] space-y-1.5 text-zinc-400 mt-4 font-sans">
+                                  <div className="flex justify-between">
+                                    <span className="text-zinc-555">Crop Status:</span>
+                                    <span className="font-bold text-zinc-300 uppercase tracking-wide text-[9px]">{crop.status}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-zinc-555 font-sans">Planted On:</span>
+                                    <span className="font-mono text-zinc-300">{new Date(crop.plantedAt).toLocaleDateString()}</span>
+                                  </div>
+                                  {crop.harvestPlannedAt && (
+                                    <div className="flex justify-between">
+                                      <span className="text-zinc-555 font-sans">Planned Harvest:</span>
+                                      <span className="font-mono text-zinc-350">{new Date(crop.harvestPlannedAt).toLocaleDateString()}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-zinc-800/40 flex justify-between items-center text-xs text-zinc-555">
+                        <span>
+                          {selectedFarm ? (
+                            `Farm Area: ${selectedFarm.totalAreaHectares} Ha | Location: ${selectedFarm.locationName || "Default Coordinates"} | Lat ${selectedFarm.latitude.toFixed(4)}, Long ${selectedFarm.longitude.toFixed(4)}`
+                          ) : (
+                            t("Register a farm to view satellite tracking coordinates.", "उपग्रह ट्रैकिंग निर्देशांक देखने के लिए एक खेत पंजीकृत करें।", "ఉపగ్రహ ట్రాకింగ్ కోఆర్డినేట్లను వీక్షించడానికి ఒక పొలాన్ని నమోదు చేయండి.")
+                          )}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setActiveTab("farms");
+                          }}
+                          className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
+                        >
+                          {t("Plan New Crop Season", "नई फसल सीजन की योजना बनाएं", "కొత్త పంట ప్రణాళికను సిద్ధం చేయండి")} →
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* AI Agent reasoning stream console */}
+                    <div className="border border-zinc-800/60 rounded-2xl p-6 bg-[#090910] flex flex-col h-[400px]">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-sm font-semibold text-zinc-200">Agentic Action Center</h3>
+                          <p className="text-xs text-zinc-500 font-medium">Real-time decisions logs (LangGraph)</p>
+                        </div>
+                        <span className="flex h-2 w-2 relative">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto space-y-3.5 pr-2 custom-scrollbar text-xs font-mono">
+                        {agentLogs.map((log, index) => {
+                          let agentColor = "text-zinc-400";
+                          if (log.type.includes("weather")) agentColor = "text-sky-400";
+                          if (log.type.includes("irrigation")) agentColor = "text-blue-400";
+                          if (log.type.includes("fertilizer")) agentColor = "text-amber-400";
+                          if (log.type.includes("market")) agentColor = "text-purple-400";
+                          if (log.type.includes("disease")) agentColor = "text-rose-400";
+
+                          return (
+                            <div key={index} className="border border-zinc-905 bg-zinc-950/40 rounded-xl p-3 space-y-1">
+                              <div className="flex justify-between items-center text-[10px] text-zinc-555">
+                                <span className={`font-bold ${agentColor}`}>[{log.agent}]</span>
+                                <span>{log.time}</span>
+                              </div>
+                              <p className="text-zinc-300 leading-relaxed font-sans">{log.message}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )}
 

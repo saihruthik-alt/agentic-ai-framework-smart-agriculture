@@ -185,10 +185,14 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleDeveloperGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-950 border border-zinc-850 hover:border-zinc-800 py-3 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 hover:text-white transition-all cursor-pointer shadow-lg"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-950 border border-zinc-855 hover:border-zinc-800 py-3 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 hover:text-white transition-all cursor-pointer shadow-lg"
           >
             🚀 Developer Google Login (Mock G-Auth)
           </button>
+          
+          <p className="text-[10px] text-zinc-500 text-center leading-relaxed max-w-[340px]">
+            ℹ️ To use standard Google Sign-In, configure your Google Console Client ID in <code className="text-zinc-400">login/page.tsx</code>. Otherwise, use the Developer button for instant offline/local testing.
+          </p>
         </div>
 
         <div className="text-center pt-6 border-t border-zinc-900 mt-6">

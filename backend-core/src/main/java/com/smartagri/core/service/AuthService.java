@@ -33,10 +33,12 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        String username = request.getUsername().trim().toLowerCase();
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
@@ -48,8 +50,8 @@ public class AuthService {
         }
 
         User user = User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
+                .username(username)
+                .email(email)
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(userRole)
                 .build();
@@ -69,8 +71,9 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
-                .or(() -> userRepository.findByEmail(request.getUsername()))
+        String searchKey = request.getUsername().trim().toLowerCase();
+        User user = userRepository.findByUsername(searchKey)
+                .or(() -> userRepository.findByEmail(searchKey))
                 .orElseThrow(() -> new IllegalArgumentException("Username or email not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
@@ -112,20 +115,21 @@ public class AuthService {
             Map<String, Object> payload = objectMapper.readValue(payloadJson, Map.class);
 
             String email = (String) payload.get("email");
-            String name = (String) payload.get("name");
             if (email == null || email.trim().isEmpty()) {
                 throw new IllegalArgumentException("Email not found in Google token");
             }
+            final String finalEmail = email.trim().toLowerCase();
+            String name = (String) payload.get("name");
 
             if (name == null || name.trim().isEmpty()) {
                 name = (String) payload.get("given_name");
             }
             if (name == null || name.trim().isEmpty()) {
-                name = email.split("@")[0];
+                name = finalEmail.split("@")[0];
             }
 
             String finalName = name;
-            User user = userRepository.findByEmail(email)
+            User user = userRepository.findByEmail(finalEmail)
                     .orElseGet(() -> {
                         // Generate a unique username if the default one is already taken
                         String username = finalName.replaceAll("[^a-zA-Z0-9]", "");
@@ -145,7 +149,7 @@ public class AuthService {
 
                         User newUser = User.builder()
                                 .username(uniqueUsername)
-                                .email(email)
+                                .email(finalEmail)
                                 .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
                                 .role(User.Role.FARMER)
                                 .build();
