@@ -1402,6 +1402,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
       }
       if (res.ok) {
         fetchCrops(selectedFarm.id);
+        setSelectedChatCrop("");
       } else {
         alert("Failed to delete crop.");
       }
@@ -2609,39 +2610,69 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Farm Registration Column */}
                 <div className="space-y-6">
-                  {/* Select Farm */}
+                  {/* Select Active Farm & Crop/Field Dropdowns */}
                   <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6 space-y-4">
-                    <h3 className="text-sm font-bold text-zinc-200">Select Active Farm</h3>
-                    {loadingFarms ? (
-                      <div className="text-xs text-zinc-500">Loading farms...</div>
-                    ) : farms.length === 0 ? (
-                      <div className="text-xs text-zinc-500">No farms registered. Register one below.</div>
+                    <h3 className="text-sm font-bold text-zinc-200">🏡 Active Agricultural Context Planner</h3>
+                    
+                    {farms.length === 0 ? (
+                      <div className="text-xs text-amber-500 bg-amber-950/20 border border-amber-900/20 p-4 rounded-xl leading-normal">
+                        ⚠️ No registered farms found. Please create a farm profile below first.
+                      </div>
                     ) : (
-                      <div className="space-y-2">
-                        {farms.map((f) => (
-                          <div key={f.id} className="flex gap-2 items-center">
-                            <button
-                              onClick={() => setSelectedFarm(f)}
-                              className={`flex-1 flex justify-between items-center p-3.5 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
-                                selectedFarm?.id === f.id
-                                  ? "border-emerald-500 bg-emerald-950/20 text-emerald-300"
-                                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 text-zinc-400"
-                              }`}
-                            >
-                              <span className="font-bold">{f.name}</span>
-                              <span className="text-[9px] uppercase tracking-wider bg-zinc-850 px-2 py-0.5 rounded text-zinc-300 border border-zinc-800 font-mono">
-                                {f.totalAreaHectares.toFixed(1)} {f.areaUnit || "acres"}
-                              </span>
-                            </button>
-                            <button
-                              onClick={() => handleDeleteFarm(f.id)}
-                              className="p-3.5 rounded-xl border border-rose-900/40 hover:bg-rose-950/30 text-rose-450 hover:text-rose-350 transition-colors text-xs cursor-pointer"
-                              title="Delete Farm"
-                            >
-                              🗑️
-                            </button>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-[10px] text-zinc-500 font-bold mb-1">SELECT REGISTERED FARM</label>
+                          <select
+                            value={selectedFarm?.id || ""}
+                            onChange={(e) => {
+                              const farm = farms.find((f) => f.id === e.target.value);
+                              if (farm) {
+                                setSelectedFarm(farm);
+                                fetchCrops(farm.id);
+                                fetchTelemetry(farm.id);
+                                setSelectedChatCrop("");
+                              } else {
+                                setSelectedFarm(null);
+                                setSelectedChatCrop("");
+                              }
+                            }}
+                            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:border-emerald-500 focus:outline-none cursor-pointer font-semibold"
+                          >
+                            <option value="">-- Choose Farm --</option>
+                            {farms.map((f) => (
+                              <option key={f.id} value={f.id}>
+                                {f.name} ({f.totalAreaHectares.toFixed(1)} {f.areaUnit || "acres"})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] text-zinc-500 font-bold mb-1">DECISION PLANNER (CROP/FIELD)</label>
+                          <select
+                            value={selectedChatCrop}
+                            onChange={(e) => setSelectedChatCrop(e.target.value)}
+                            disabled={!selectedFarm}
+                            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-zinc-300 focus:border-emerald-500 focus:outline-none cursor-pointer font-semibold disabled:opacity-50"
+                          >
+                            <option value="">-- Choose Crop/Field --</option>
+                            {crops.length === 0 ? (
+                              <option value="" disabled>No crops seeded on this farm yet</option>
+                            ) : (
+                              crops.map((c, idx) => (
+                                <option key={idx} value={c.name}>
+                                  {c.name} ({c.variety})
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        </div>
+
+                        {!selectedChatCrop && crops.length === 0 && selectedFarm && (
+                          <div className="text-xs text-amber-500 bg-amber-950/20 border border-amber-900/20 p-3.5 rounded-xl leading-normal">
+                            ⚠️ No crops registered under this farm. Please seed a crop using the form on the right first.
                           </div>
-                        ))}
+                        )}
                       </div>
                     )}
                   </div>
