@@ -69,6 +69,78 @@ async def classify_leaf_disease(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image file upload: {e}")
         
+    # Heuristics: Excess Green Index (ExG)
+    exg = 2.0 * green_avg - red_avg - blue_avg
+    is_skin_tone = (red_avg > green_avg + 12) and (green_avg > blue_avg + 5) and (red_avg > 70)
+    
+    # Check for LLM Keys for vision validation
+    import os
+    import json
+    import base64
+    import urllib.request
+    from app.config import settings
+    
+    gemini_key = settings.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY")
+    openai_key = settings.OPENAI_API_KEY or os.environ.get("OPENAI_API_KEY")
+    
+    # Live Gemini Vision execution if key is present
+    if gemini_key:
+        try:
+            encoded_image = base64.b64encode(image_bytes).decode("utf-8")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            req_data = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": "Analyze this image. Determine if it is a crop/plant leaf. If it is NOT a leaf (e.g. if it is a human, face, building, animal, or random object), return a JSON: {\"is_leaf\": false}. If it is a leaf, determine if it has a disease. Return a JSON matching: {\"is_leaf\": true, \"crop\": \"tomato|rice|cotton\", \"disease_name\": \"...\", \"local_name\": \"...\", \"medicine\": \"...\", \"dosage\": \"...\", \"preventive_tips\": [\"...\"]}. Output raw JSON block only without markdown wrapper."},
+                            {
+                                "inline_data": {
+                                    "mime_type": "image/jpeg" if img_format == "JPEG" else "image/png",
+                                    "data": encoded_image
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(req_data).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=12) as response:
+                res = json.loads(response.read().decode())
+                text_content = res["candidates"][0]["content"]["parts"][0]["text"].strip()
+                if "```json" in text_content:
+                    text_content = text_content.split("```json")[1].split("```")[0].strip()
+                elif "```" in text_content:
+                    text_content = text_content.split("```")[1].split("```")[0].strip()
+                
+                parsed = json.loads(text_content)
+                if not parsed.get("is_leaf", True):
+                    return {"error": "No valid crop leaf detected in the uploaded image. Please upload a clear photo of a tomato, rice, or cotton plant leaf."}
+                
+                return {
+                    "filename": file.filename,
+                    "classification": parsed.get("disease_name", "Unknown disease"),
+                    "localName": parsed.get("local_name", "N/A"),
+                    "metadata": {"width": width, "height": height, "format": img_format},
+                    "treatment": {
+                        "medicine": parsed.get("medicine", "N/A"),
+                        "dosage": parsed.get("dosage", "N/A"),
+                        "preventiveTips": parsed.get("preventive_tips", [])
+                    }
+                }
+        except Exception as e:
+            # Fallback to local heuristics if live API fails
+            pass
+
+    # Reject if heuristics flag skin tones/low ExG index (meaning human face, body, or random objects)
+    # Allow bypass if filename explicitly includes a crop name
+    if (exg < 4.0 and not any(k in filename_lower for k in ["tomato", "rice", "cotton", "paddy", "leaf"])) or is_skin_tone:
+        return {"error": "No valid crop leaf detected in the uploaded image. Please upload a clear photo of a tomato, rice, or cotton plant leaf."}
+
     # Match crop based on filename or color profiles
     target_key = "tomato"
     if "rice" in filename_lower or "paddy" in filename_lower:
@@ -76,7 +148,6 @@ async def classify_leaf_disease(file: UploadFile = File(...)):
     elif "cotton" in filename_lower:
         target_key = "cotton"
     elif green_avg > red_avg and green_avg > blue_avg:
-        # Fallback based on visual cues: if very green-dominated, assume tomato leaf
         target_key = "tomato"
         
     disease_info = DISEASE_REGISTRY.get(target_key)

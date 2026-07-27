@@ -1521,6 +1521,11 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
         body: formData
       });
       const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        setScanningLeaf(false);
+        return;
+      }
       
       setScanResult({
         diseaseName: data.classification,
@@ -1590,6 +1595,11 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
         body: formData
       });
       const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        setScanningLeaf(false);
+        return;
+      }
       
       setScanResult({
         diseaseName: data.classification,
