@@ -378,12 +378,13 @@ def orchestrator_node(state: AgentState) -> Dict:
                 final_answer = (
                     f"🌱 Soil Nutrition Node: Recommended split dosage for your {hectares:.1f} Ha field: "
                     f"Apply {urea_bags} bags of Urea, {dap_bags} bags of DAP, and {mop_bags} bags of MOP. "
-                    f"NPK stock: N={nitrogen} mg/kg."
+                    f"NPK stock: N={nitrogen} mg/kg. Timing: Apply 50% basal dose, 25% at tillering phase, and 25% at flowering stage."
                 )
             else:
                 final_answer = (
                     f"🌱 Soil Nutrition Node: For your {crop} field, we recommend applying {urea_bags} bags of Urea, "
-                    f"{dap_bags} bags of DAP, and {mop_bags} bags of MOP. Est. Cost: ₹{round((urea_bags*300) + (dap_bags*1350) + (mop_bags*1000))}."
+                    f"{dap_bags} bags of DAP, and {mop_bags} bags of MOP (Est. Cost: ₹{round((urea_bags*300) + (dap_bags*1350) + (mop_bags*1000))}). "
+                    f"Timing: Apply 50% basal dose during transplanting, 25% during active vegetative growth, and 25% during flowering phase."
                 )
                 
         elif target_agent == "Disease Vision Agent":
@@ -400,10 +401,12 @@ def orchestrator_node(state: AgentState) -> Dict:
                 
         elif target_agent == "Inventory Agent":
             seed_needed = round(40 * hectares)
+            pesticide_needed = math.ceil(1.5 * hectares)
             final_answer = (
                 f"📦 Resource Watchdog Node: No active inventory records are currently linked to this farm "
                 f"in the database. Based on your {crop} field size of {hectares:.1f} Hectares, you will need: "
-                f"~{seed_needed} kg of {crop} seeds, {urea_bags} bags Urea, and {dap_bags} bags DAP. "
+                f"~{seed_needed} kg of {crop} seeds, {urea_bags} bags Urea, {dap_bags} bags DAP (Fertilizers), "
+                f"{pesticide_needed} Liters of broad-spectrum pesticide, and basic hand tools (weeder, shovel). "
                 f"Current supply level is recorded as: DEFICIENT (low)."
             )
             
