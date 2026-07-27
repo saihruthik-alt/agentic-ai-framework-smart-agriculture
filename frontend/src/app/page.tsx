@@ -1833,58 +1833,6 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
             </button>
           </nav>
         </div>
-
-        {/* System Diagnostics Box */}
-        <div className="border border-zinc-800/80 rounded-2xl bg-[#0f0f18] p-4">
-          <div className="flex items-center justify-between mb-3.5">
-            <span className="text-xs font-semibold text-zinc-400">Agri-System Diagnostics</span>
-            <button
-              onClick={fetchHealthChecks}
-              id="refresh-health-btn"
-              className="text-[10px] text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
-            >
-              🔄 Refresh
-            </button>
-          </div>
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-500">Agri-Telemetry Sync:</span>
-              <span
-                id="health-core-status"
-                className={`font-semibold ${
-                  coreHealth?.status === "UP" || coreHealth?.status === "DEGRADED" ? "text-emerald-400" : "text-rose-500"
-                }`}
-              >
-                {coreHealth?.status === "UP" || coreHealth?.status === "DEGRADED" ? "HEALTHY" : "OFFLINE"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-500">AI Agronomist Brain:</span>
-              <span
-                id="health-ai-status"
-                className={`font-semibold ${
-                  aiHealth?.status === "UP" || aiHealth?.status === "DEGRADED" ? "text-emerald-400" : "text-rose-500"
-                }`}
-              >
-                {aiHealth?.status === "UP" || aiHealth?.status === "DEGRADED" ? "HEALTHY" : "OFFLINE"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center pt-1 border-t border-zinc-800/50">
-              <span className="text-zinc-500">Soil & Crop Data Store:</span>
-              <span className="text-emerald-400 font-bold">
-                {coreHealth?.database === "UP" ? "Connected" : "Offline"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-500">Satellite Crop Monitor:</span>
-              <span className="text-emerald-400 font-bold">ONLINE</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-500">IoT Soil Probe Network:</span>
-              <span className="text-emerald-400 font-bold">ACTIVE</span>
-            </div>
-          </div>
-        </div>
       </aside>
 
       {/* Main Panel */}
