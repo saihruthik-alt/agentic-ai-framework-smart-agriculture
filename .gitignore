@@ -49,6 +49,7 @@ backend-ai/.env
 
 # Databases / Local storage
 backend-ai/smart_agriculture.db
+backend-core/data/
 postgres_data/
 redis_data/
 minio_data/
