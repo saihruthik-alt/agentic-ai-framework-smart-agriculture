@@ -78,6 +78,7 @@ def irrigation_node(state: AgentState) -> Dict:
     moisture = state["telemetry"].get("moisture", 30)
     temp = float(state["decisions"].get("live_temperature", "32.0"))
     crop = state.get("crop", "Rice")
+    hectares = float(state["telemetry"].get("hectares", 2.0))
     
     # Calculate simplified Reference Evapotranspiration (ET0) in mm/day
     et0 = 0.18 * temp + 1.2
@@ -88,7 +89,8 @@ def irrigation_node(state: AgentState) -> Dict:
     
     # Water required to restore soil moisture per acre (liters)
     # 1 mm of water depth over 1 acre = 4,047 liters
-    water_req_liters = et0 * 4047 * (moisture_deficit_percent / 100.0)
+    water_req_per_acre = et0 * 4047 * (moisture_deficit_percent / 100.0)
+    total_water_liters = water_req_per_acre * (hectares * 2.471)
     
     # Query vector store manual
     manual_guide = ""
@@ -102,8 +104,8 @@ def irrigation_node(state: AgentState) -> Dict:
     finally:
         db.close()
         
-    if water_req_liters > 0:
-        decision = f"Irrigation Agent: Daily ET0 is {et0:.2f}mm. Soil moisture deficit of {moisture_deficit_percent:.1f}%. Recommend irrigating {water_req_liters:.1f} Liters/Acre.{manual_guide}"
+    if total_water_liters > 0:
+        decision = f"Irrigation Agent: Daily ET0 is {et0:.2f}mm. Soil moisture deficit of {moisture_deficit_percent:.1f}%. Recommend irrigating {total_water_liters:.1f} Liters total across your {hectares:.1f} Hectare farm field.{manual_guide}"
         action = "TRIGGER_DRIP"
     else:
         decision = f"Irrigation Agent: Soil moisture is optimal ({moisture}%). No immediate watering required.{manual_guide}"
@@ -115,7 +117,7 @@ def irrigation_node(state: AgentState) -> Dict:
         "decisions": {
             "irrigation_action": action,
             "et0_mm": f"{et0:.2f}",
-            "water_required_liters": f"{water_req_liters:.1f}"
+            "water_required_liters": f"{total_water_liters:.1f}"
         }
     }
 
@@ -126,6 +128,7 @@ def fertilizer_node(state: AgentState) -> Dict:
     p = state["telemetry"].get("phosphorus", 10)
     k = state["telemetry"].get("potassium", 20)
     crop = state.get("crop", "Rice")
+    hectares = float(state["telemetry"].get("hectares", 2.0))
     
     # Target NPK requirements for 1 Hectare of crop (common agricultural values)
     targets = {
@@ -147,19 +150,24 @@ def fertilizer_node(state: AgentState) -> Dict:
     # Calculate Commercial Fertilizer Bags needed per Hectare:
     # 1. DAP (Diammonium Phosphate, 18-46-0) supplies Phosphorus first. 
     #    1 bag of DAP (50kg) contains 23kg P2O5 and 9kg N.
-    dap_bags = p_deficit / 23.0
-    n_supplied_by_dap = dap_bags * 9.0
+    dap_bags_per_ha = p_deficit / 23.0
+    n_supplied_by_dap = dap_bags_per_ha * 9.0
     
     # 2. Urea (46-0-0) supplies remaining Nitrogen.
     #    1 bag of Urea (50kg) contains 23kg N.
     remaining_n_deficit = max(0.0, n_deficit - n_supplied_by_dap)
-    urea_bags = remaining_n_deficit / 23.0
+    urea_bags_per_ha = remaining_n_deficit / 23.0
     
     # 3. MOP (Muriate of Potash, 0-0-60) supplies Potassium.
     #    1 bag of MOP (50kg) contains 30kg K2O.
-    mop_bags = k_deficit / 30.0
+    mop_bags_per_ha = k_deficit / 30.0
     
-    total_cost_est = (urea_bags * 300) + (dap_bags * 1350) + (mop_bags * 1000) # approximate price in ₹
+    # Scale bags by total hectares
+    total_urea_bags = math.ceil(urea_bags_per_ha * hectares)
+    total_dap_bags = math.ceil(dap_bags_per_ha * hectares)
+    total_mop_bags = math.ceil(mop_bags_per_ha * hectares)
+    
+    total_cost_est = (total_urea_bags * 300) + (total_dap_bags * 1350) + (total_mop_bags * 1000) # approximate price in ₹
     
     manual_guide = ""
     db = SessionLocal()
@@ -172,8 +180,8 @@ def fertilizer_node(state: AgentState) -> Dict:
     finally:
         db.close()
         
-    advice = (f"Fertilizer Agent: Commercial Fertilizer Optimizer recommends applying per Hectare: "
-              f"{math.ceil(urea_bags)} bags Urea, {math.ceil(dap_bags)} bags DAP, and {math.ceil(mop_bags)} bags MOP. "
+    advice = (f"Fertilizer Agent: Commercial Fertilizer Optimizer recommends applying for your {hectares:.1f} Hectare farm field: "
+              f"{total_urea_bags} bags Urea, {total_dap_bags} bags DAP, and {total_mop_bags} bags MOP. "
               f"Est. Cost: ₹{round(total_cost_est)}. {manual_guide}")
               
     messages.append(advice)
@@ -181,9 +189,9 @@ def fertilizer_node(state: AgentState) -> Dict:
         "messages": messages,
         "decisions": {
             "fertilizer_advice": advice,
-            "urea_bags": str(math.ceil(urea_bags)),
-            "dap_bags": str(math.ceil(dap_bags)),
-            "mop_bags": str(math.ceil(mop_bags)),
+            "urea_bags": str(total_urea_bags),
+            "dap_bags": str(total_dap_bags),
+            "mop_bags": str(total_mop_bags),
             "fertilizer_cost_inr": str(round(total_cost_est))
         }
     }

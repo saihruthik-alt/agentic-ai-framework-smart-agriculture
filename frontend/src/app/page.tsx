@@ -1452,17 +1452,23 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
     const query = chatMessage;
     setChatMessage("");
 
+    const activeCropName = crops.length > 0 ? crops[0].name : (AVAILABLE_CROPS[activePlaybookCropIdx]?.value || "Rice");
+    const activeLat = selectedFarm ? selectedFarm.latitude : REALISTIC_LOCATIONS[activeLocationIndex].latitude;
+    const activeLon = selectedFarm ? selectedFarm.longitude : REALISTIC_LOCATIONS[activeLocationIndex].longitude;
+    const activeHectares = selectedFarm ? selectedFarm.totalAreaHectares : 5.0;
+
     const payload = {
       query: query,
       agent: selectedChatAgent,
-      crop: AVAILABLE_CROPS[activePlaybookCropIdx]?.value || "Rice",
+      crop: activeCropName,
       telemetry: {
         moisture: alphaMoisture,
         temperature: 32,
         humidity: 62,
         nitrogen: nitrogenLevel,
-        latitude: REALISTIC_LOCATIONS[activeLocationIndex].latitude,
-        longitude: REALISTIC_LOCATIONS[activeLocationIndex].longitude
+        latitude: activeLat,
+        longitude: activeLon,
+        hectares: activeHectares
       }
     };
 
