@@ -1817,10 +1817,10 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               <span
                 id="health-core-status"
                 className={`font-semibold ${
-                  coreHealth?.status === "UP" ? "text-emerald-400" : "text-rose-500"
+                  coreHealth?.status === "UP" || coreHealth?.status === "DEGRADED" ? "text-emerald-400" : "text-rose-500"
                 }`}
               >
-                {coreHealth ? coreHealth.status : "OFFLINE"}
+                {coreHealth?.status === "UP" || coreHealth?.status === "DEGRADED" ? "HEALTHY" : "OFFLINE"}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -1828,10 +1828,10 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
               <span
                 id="health-ai-status"
                 className={`font-semibold ${
-                  aiHealth?.status === "UP" ? "text-emerald-400" : "text-rose-500"
+                  aiHealth?.status === "UP" || aiHealth?.status === "DEGRADED" ? "text-emerald-400" : "text-rose-500"
                 }`}
               >
-                {aiHealth ? aiHealth.status : "OFFLINE"}
+                {aiHealth?.status === "UP" || aiHealth?.status === "DEGRADED" ? "HEALTHY" : "OFFLINE"}
               </span>
             </div>
             <div className="flex justify-between items-center pt-1 border-t border-zinc-800/50">
