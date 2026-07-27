@@ -622,6 +622,7 @@ export default function Dashboard() {
       { sender: "Market Agent", text: "Hello! I am your Mandi Price Scraper Agent. Ask me about mandi prices, trends, or when to sell your harvest." }
     ]
   });
+  const [chatViewActive, setChatViewActive] = useState(false);
   const [sendingQuery, setSendingQuery] = useState(false);
 
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -2209,112 +2210,204 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
 
           {/* TAB 2: AI AGENTS */}
           {activeTab === "agents" && (
-            <div className="space-y-8">
-              <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
-                <h3 className="text-lg font-bold text-zinc-200 mb-2">🤖 Agentic AI Network Configuration</h3>
-                <p className="text-sm text-zinc-500">
-                  Select an agent card below, and ask questions directly in the live Agent Chat room below!
-                </p>
-              </div>
-
-              {/* Agent Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  { name: "Weather Agent", role: "IMD Forecasts Node", status: "Active", desc: "Monitors forecasts and rainfall logs to suggest crop scheduling changes.", icon: "☀️" },
-                  { name: "Irrigation Agent", role: "Virtual Drip Node", status: "Active", desc: "Reads virtual soil moisture data. Calculates sprinkler timings.", icon: "💧" },
-                  { name: "Fertilizer Agent", role: "Soil Nutrition Node", status: "Active", desc: "Monitors nitrogen (N), phosphorus (P), and potassium (K) configurations.", icon: "🌱" },
-                  { name: "Disease Vision Agent", role: "Leaf Spot Classification", status: "Idle", desc: "Analyzes crop leaf pictures to detect rust, blight, and spots.", icon: "👁️" },
-                  { name: "Inventory Agent", role: "Resource Watchdog", status: "Active", desc: "Tracks materials levels, triggers alerts when levels dip.", icon: "📦" },
-                  { name: "Market Agent", role: "Mandi price index scraper", status: "Active", desc: "Monitors rates in Guntur and Hyderabad mandis.", icon: "📈" },
-                ].map((agent, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setSelectedChatAgent(agent.name)}
-                    className={`border rounded-2xl p-5 transition-all cursor-pointer ${
-                      selectedChatAgent === agent.name
-                        ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 ring-2 ring-emerald-500/20"
-                        : "border-zinc-800 bg-[#0c0c12]/40 hover:border-zinc-700"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="text-2xl">{agent.icon}</div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        agent.status === "Active" ? "bg-emerald-950 text-emerald-400 border border-emerald-800/30" : "bg-zinc-800 text-zinc-400"
-                      }`}>
-                        {agent.status}
-                      </span>
-                    </div>
-                    <h4 className="text-md font-bold text-zinc-200">{agent.name}</h4>
-                    <span className="text-[10px] text-zinc-500 uppercase font-semibold block mt-0.5">{agent.role}</span>
-                    <p className="text-xs text-zinc-400 mt-3 leading-relaxed">{agent.desc}</p>
+            <div className="space-y-6">
+              {!chatViewActive ? (
+                <>
+                  <div className="border border-zinc-800 bg-[#090910]/40 rounded-3xl p-6">
+                    <h3 className="text-lg font-bold text-zinc-200 mb-2">🤖 Agentic AI Network Configuration</h3>
+                    <p className="text-sm text-zinc-500">
+                      Click on any expert AI agent card below to open its dedicated chat session and receive live agricultural assistance.
+                    </p>
                   </div>
-                ))}
-              </div>
 
-              {/* Chat room */}
-              <div className="border border-zinc-850 bg-[#090910]/80 rounded-3xl p-6 space-y-4">
-                <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-zinc-200">🗣️ Live Agent Chat Console</h3>
-                    <p className="text-xs text-zinc-500">Querying: <span className="text-emerald-400 font-bold">{selectedChatAgent}</span></p>
+                  {/* Agent Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                      { name: "Weather Agent", role: "IMD Forecasts Node", status: "Active", desc: "Monitors forecasts and rainfall logs to suggest crop scheduling changes.", icon: "☀️" },
+                      { name: "Irrigation Agent", role: "Virtual Drip Node", status: "Active", desc: "Reads virtual soil moisture data. Calculates sprinkler timings.", icon: "💧" },
+                      { name: "Fertilizer Agent", role: "Soil Nutrition Node", status: "Active", desc: "Monitors nitrogen (N), phosphorus (P), and potassium (K) configurations.", icon: "🌱" },
+                      { name: "Disease Vision Agent", role: "Leaf Spot Classification", status: "Active", desc: "Analyzes crop leaf pictures to detect rust, blight, spots, and pests.", icon: "👁️" },
+                      { name: "Inventory Agent", role: "Resource Watchdog", status: "Active", desc: "Tracks materials levels, triggers alerts when levels dip.", icon: "📦" },
+                      { name: "Market Agent", role: "Mandi price index scraper", status: "Active", desc: "Monitors rates in Guntur and Hyderabad mandis.", icon: "📈" },
+                    ].map((agent, i) => (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setSelectedChatAgent(agent.name);
+                          setChatViewActive(true);
+                        }}
+                        className="border border-zinc-800 bg-[#0c0c12]/40 hover:border-zinc-700 rounded-2xl p-5 transition-all cursor-pointer flex flex-col justify-between hover:shadow-[0_4px_20px_rgba(16,185,129,0.05)] hover:border-emerald-500/40 group"
+                      >
+                        <div>
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="text-2xl group-hover:scale-110 transition-transform duration-200">{agent.icon}</div>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/30">
+                              {agent.status}
+                            </span>
+                          </div>
+                          <h4 className="text-md font-bold text-zinc-200 group-hover:text-emerald-300 transition-colors">{agent.name}</h4>
+                          <span className="text-[10px] text-zinc-500 uppercase font-semibold block mt-0.5">{agent.role}</span>
+                          <p className="text-xs text-zinc-400 mt-3 leading-relaxed">{agent.desc}</p>
+                        </div>
+                        <div className="mt-4 flex justify-end">
+                          <span className="text-xs font-bold text-emerald-400 group-hover:text-emerald-300">Open Chat Room →</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <select
-                    value={selectedChatAgent}
-                    onChange={(e) => setSelectedChatAgent(e.target.value)}
-                    className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => setChatViewActive(false)}
+                    className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer bg-zinc-900/60 px-4 py-2 rounded-xl border border-zinc-850 w-fit mb-4"
                   >
-                    <option value="Weather Agent">Weather Agent</option>
-                    <option value="Irrigation Agent">Irrigation Agent</option>
-                    <option value="Fertilizer Agent">Fertilizer Agent</option>
-                    <option value="Disease Vision Agent">Disease Vision Agent</option>
-                    <option value="Inventory Agent">Inventory Agent</option>
-                    <option value="Market Agent">Market Agent</option>
-                  </select>
-                </div>
+                    ← Back to Agents Directory
+                  </button>
 
-                {/* Messages Box */}
-                <div className="h-48 overflow-y-auto border border-zinc-850 bg-zinc-950/40 rounded-2xl p-4 space-y-3 custom-scrollbar text-xs font-mono">
-                  {(agentChats[selectedChatAgent] || []).map((msg, index) => (
-                    <div key={index} className={`flex flex-col ${msg.sender === "You" ? "items-end" : "items-start"}`}>
-                      <span className="text-[9px] text-zinc-500 mb-0.5">{msg.sender}</span>
-                      <div className={`rounded-xl px-4 py-2 max-w-md ${
-                        msg.sender === "You"
-                          ? "bg-emerald-600 text-black font-semibold"
-                          : "bg-zinc-900 border border-zinc-800 text-zinc-300"
-                      }`}>
-                        {msg.text}
+                  {/* Chat room */}
+                  <div className="border border-zinc-850 bg-[#090910]/80 rounded-3xl p-6 space-y-4">
+                    <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-zinc-200">{selectedChatAgent} Chatroom</h3>
+                        <p className="text-xs text-zinc-500 mt-1">
+                          Active Context: <span className="text-emerald-400 font-semibold">{selectedFarm ? selectedFarm.name : "Default Farm"}</span> | Crop: <span className="text-emerald-400 font-semibold">{crops.length > 0 ? crops[0].name : "Rice"}</span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Agent Online</span>
                       </div>
                     </div>
-                  ))}
-                  {sendingQuery && (
-                    <div className="flex items-center gap-2 text-zinc-500 text-[10px]">
-                      <svg className="animate-spin h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      <span>Formulating response...</span>
-                    </div>
-                  )}
-                </div>
 
-                {/* Input form */}
-                <form onSubmit={handleAgentChatSubmit} className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    placeholder={`Ask ${selectedChatAgent} something (e.g. "What is the forecast?")`}
-                    className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-650 focus:border-emerald-500 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
-                  >
-                    Ask Agent
-                  </button>
-                </form>
-              </div>
+                    {/* Messages Box */}
+                    <div className="h-64 overflow-y-auto border border-zinc-850 bg-zinc-950/40 rounded-2xl p-4 space-y-3 custom-scrollbar text-xs font-mono">
+                      {(agentChats[selectedChatAgent] || []).map((msg, index) => (
+                        <div key={index} className={`flex flex-col ${msg.sender === "You" ? "items-end" : "items-start"}`}>
+                          <span className="text-[9px] text-zinc-500 mb-0.5">{msg.sender}</span>
+                          <div className={`rounded-xl px-4 py-2 max-w-md ${
+                            msg.sender === "You"
+                              ? "bg-emerald-600 text-black font-semibold"
+                              : "bg-zinc-900 border border-zinc-800 text-zinc-300"
+                          }`}>
+                            {msg.text}
+                          </div>
+                        </div>
+                      ))}
+                      {sendingQuery && (
+                        <div className="flex items-center gap-2 text-zinc-500 text-[10px]">
+                          <svg className="animate-spin h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          <span>Formulating response...</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Quick Suggestions */}
+                    <div className="flex flex-wrap gap-2 text-[10px] pt-1">
+                      {selectedChatAgent === "Weather Agent" && [
+                        "Will it rain today?",
+                        "Is today's weather good for my crop?",
+                        "Should I irrigate today?",
+                        "What weather precautions should I take?"
+                      ].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => { setChatMessage(q); }}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 hover:text-zinc-205 transition-all cursor-pointer font-medium"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                      {selectedChatAgent === "Irrigation Agent" && [
+                        "Does my crop need water today?",
+                        "How much water is needed?",
+                        "When should I irrigate next?",
+                        "Why are you recommending irrigation?"
+                      ].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => { setChatMessage(q); }}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 hover:text-zinc-205 transition-all cursor-pointer font-medium"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                      {selectedChatAgent === "Fertilizer Agent" && [
+                        "Which fertilizer should I use?",
+                        "How much should I apply?",
+                        "When should I apply?",
+                        "Why is this fertilizer recommended?"
+                      ].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => { setChatMessage(q); }}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 hover:text-zinc-205 transition-all cursor-pointer font-medium"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                      {selectedChatAgent === "Disease Vision Agent" && [
+                        "Show disease treatments",
+                        "Suggest pest prevention steps"
+                      ].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => { setChatMessage(q); }}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 hover:text-zinc-205 transition-all cursor-pointer font-medium"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                      {selectedChatAgent === "Inventory Agent" && [
+                        "Check seeds required",
+                        "Check fertilizer bags stock",
+                        "Is stock low?"
+                      ].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => { setChatMessage(q); }}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 hover:text-zinc-205 transition-all cursor-pointer font-medium"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                      {selectedChatAgent === "Market Agent" && [
+                        "Today's market price",
+                        "Best market to sell",
+                        "Should I sell now or wait?",
+                        "Check price trend"
+                      ].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => { setChatMessage(q); }}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 hover:text-zinc-205 transition-all cursor-pointer font-medium"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Input form */}
+                    <form onSubmit={handleAgentChatSubmit} className="flex gap-2 pt-2">
+                      <input
+                        type="text"
+                        required
+                        value={chatMessage}
+                        onChange={(e) => setChatMessage(e.target.value)}
+                        placeholder={`Ask ${selectedChatAgent} something...`}
+                        className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-650 focus:border-emerald-500 focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Ask Agent
+                      </button>
+                    </form>
+                  </div>
 
               {selectedChatAgent === "Disease Vision Agent" && (
                 <div className="border border-zinc-800 bg-[#0c0c12]/40 rounded-3xl p-8 space-y-6">
@@ -2450,6 +2543,8 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                     </div>
                   )}
                 </div>
+              )}
+              </>
               )}
             </div>
           )}
