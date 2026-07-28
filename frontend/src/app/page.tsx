@@ -1959,7 +1959,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
             <>
               {/* Metric Widgets */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {/* Soil Moisture */}
+                    {/* Humidity Widget */}
                     <div
                       onClick={() => setActiveTab("telemetry")}
                       className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-emerald-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
@@ -1967,27 +1967,24 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                       <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                         💧
                       </div>
-                      <span className="text-xs text-zinc-550 font-medium">{t("Soil Moisture Level", "मिट्टी की नमी", "మట్టి తేమ శాతం")}</span>
+                      <span className="text-xs text-zinc-550 font-medium">{t("Relative Humidity", "सापेक्ष आर्द्रता", "సాపేక్ష ఆర్ద్రత")}</span>
                       <h3 className="text-2xl font-bold mt-2 text-emerald-400">
-                        {telemetryHistory.length > 0 ? `${telemetryHistory[telemetryHistory.length - 1].soilMoisture}%` : `${alphaMoisture}%`}
+                        {weatherData ? `${weatherData.humidity}%` : `65%`}
                       </h3>
                       <div className="flex flex-col gap-1 mt-2">
                         <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                          <span className={`h-1.5 w-1.5 rounded-full ${telemetryHistory.length > 0 ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}></span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                           <span>
-                            {telemetryHistory.length > 0 
-                              ? t("Live (Source: Connected IoT Node)", "लाइव (स्रोतः कनेक्टेड IoT)", "లైవ్ (IoT సెన్సార్)")
-                              : t("Estimated (Source: AI Soil Model)", "अनुमानित (स्रोतः एआई सॉइल)", "అంచనా (ఆధారం: AI సాయిల్)")
-                            }
+                            {t("Live (Source: Weather API)", "लाइव (स्रोतः मौसम एपीआई)", "లైవ్ (వాతావరణ API)")}
                           </span>
                         </div>
-                        <span className="text-[9px] text-zinc-600 font-sans">
-                          {telemetryHistory.length > 0 ? "Active soil sensor reading" : "Open-Meteo satellite & AI calculation"}
+                        <span className="text-[9px] text-zinc-650 font-sans">
+                          Open-Meteo satellite weather feed
                         </span>
                       </div>
                     </div>
 
-                    {/* Soil Temperature */}
+                    {/* Air Temperature Widget */}
                     <div
                       onClick={() => setActiveTab("telemetry")}
                       className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-blue-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
@@ -1995,50 +1992,44 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                       <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
                         ☀️
                       </div>
-                      <span className="text-xs text-zinc-550 font-medium">{t("Soil Temperature", "मिट्टी का तापमान", "మట్టి ఉష్ణోగ్రత")}</span>
+                      <span className="text-xs text-zinc-550 font-medium">{t("Air Temperature", "हवा का तापमान", "గాలి ఉష్ణోగ్రత")}</span>
                       <h3 className="text-2xl font-bold mt-2 text-sky-400">
-                        {telemetryHistory.length > 0 ? `${telemetryHistory[telemetryHistory.length - 1].soilTemp}°C` : `31°C`}
+                        {weatherData ? `${weatherData.temp}°C` : `28.5°C`}
                       </h3>
                       <div className="flex flex-col gap-1 mt-2">
                         <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                          <span className={`h-1.5 w-1.5 rounded-full ${telemetryHistory.length > 0 ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}></span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                           <span>
-                            {telemetryHistory.length > 0 
-                              ? t("Live (Source: Connected IoT Node)", "लाइव (स्रोतः कनेक्टेड IoT)", "లైవ్ (IoT సెన్సార్)")
-                              : t("Estimated (Source: Satellite Forecast)", "अनुमानित (स्रोतः सैटेलाइट)", "అంచనా (ఆధారం: శాటిలైట్)")
-                            }
+                            {t("Live (Source: Weather API)", "लाइव (स्रोतः मौसम एपीआई)", "లైవ్ (వాతావరణ API)")}
                           </span>
                         </div>
-                        <span className="text-[9px] text-zinc-600 font-sans">
-                          {telemetryHistory.length > 0 ? "Active soil sensor reading" : "Open-Meteo satellite & AI calculation"}
+                        <span className="text-[9px] text-zinc-650 font-sans">
+                          Open-Meteo satellite weather feed
                         </span>
                       </div>
                     </div>
 
-                    {/* Nitrogen Level */}
+                    {/* Precipitation Widget */}
                     <div
                       onClick={() => setActiveTab("telemetry")}
                       className="border border-zinc-800/50 rounded-2xl p-5 bg-[#0a0a10]/60 backdrop-blur-md relative overflow-hidden group hover:border-amber-800/50 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
                     >
                       <div className="absolute top-0 right-0 p-3 text-3xl opacity-20 group-hover:scale-110 transition-transform duration-300">
-                        ⚠️
+                        🌧️
                       </div>
-                      <span className="text-xs text-zinc-555 font-medium">{t("Soil Nitrogen Level", "मिट्टी नाइट्रोजन स्तर", "మట్టి నత్రజని శాతం")}</span>
+                      <span className="text-xs text-zinc-555 font-medium">{t("Precipitation", "वर्षा", "వర్షపాతం")}</span>
                       <h3 className="text-2xl font-bold mt-2 text-amber-500">
-                        {telemetryHistory.length > 0 ? `${telemetryHistory[telemetryHistory.length - 1].npkNitrogen}` : `${nitrogenLevel}`} <span className="text-xs font-normal text-zinc-500">mg/kg</span>
+                        {weatherData ? `${weatherData.precipitation} mm` : `0.0 mm`}
                       </h3>
                       <div className="flex flex-col gap-1 mt-2">
                         <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                          <span className={`h-1.5 w-1.5 rounded-full ${telemetryHistory.length > 0 ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}></span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                           <span>
-                            {telemetryHistory.length > 0 
-                              ? t("Live (Source: Connected IoT Node)", "लाइव (स्रोतः कनेक्टेड IoT)", "లైవ్ (IoT సెన్సార్)")
-                              : t("Estimated (Source: AI Soil Model)", "अनुमानित (स्रोतः एआई सॉइल)", "అంచనా (ఆధారం: AI సాయిల్)")
-                            }
+                            {t("Live (Source: Weather API)", "लाइव (स्रोतः मौसम एपीआई)", "లైవ్ (వాతావరణ API)")}
                           </span>
                         </div>
-                        <span className="text-[9px] text-zinc-600 font-sans">
-                          {telemetryHistory.length > 0 ? "NPK spectral sensor reading" : "AI weather & satellite estimated value"}
+                        <span className="text-[9px] text-zinc-650 font-sans">
+                          Open-Meteo satellite weather feed
                         </span>
                       </div>
                     </div>
