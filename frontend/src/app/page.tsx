@@ -104,6 +104,41 @@ const AVAILABLE_CROPS = [
   { value: "Onion", labelEn: "Onion", labelHi: "प्याज़ - Pyaaz", labelTe: "ఉల్లిపాయ - Ullipaya", label: "Onion (ఉల్లిపాయ - Ullipaya)", varieties: ["Bhima Super", "Agrifound Dark Red", "N-53"], baseCostPerAcre: 20000, yieldPerAcreQuintals: 85, marketPricePerQuintal: 1800, durationDays: 110 }
 ];
 
+const DEFAULT_GOVT_SCHEMES = [
+  {
+    id: "pm-kisan",
+    name: "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+    description: "Income support scheme providing financial assistance to all landholder farmer families.",
+    eligibleState: "All",
+    maxLandSizeHectares: 2.0,
+    benefitDetails: "₹6,000 per year in three equal installments directly transferred to bank accounts."
+  },
+  {
+    id: "rythu-bandhu",
+    name: "Rythu Bandhu Scheme (Telangana)",
+    description: "Agricultural investment support scheme providing direct cash assistance to farmers per season.",
+    eligibleState: "Telangana",
+    maxLandSizeHectares: 10.0,
+    benefitDetails: "₹10,000 per acre per year directly into bank accounts for seed/fertilizer purchases."
+  },
+  {
+    id: "rythu-bharosa",
+    name: "YSR Rythu Bharosa (Andhra Pradesh)",
+    description: "Financial assistance program supporting farming households including tenant farmers.",
+    eligibleState: "Andhra Pradesh",
+    maxLandSizeHectares: 5.0,
+    benefitDetails: "₹13,500 per year directly to farming households to cover input costs."
+  },
+  {
+    id: "crop-insurance",
+    name: "PM Fasal Bima Yojana (Crop Insurance)",
+    description: "Uniform premium crop insurance scheme guarding against natural calamities and pests.",
+    eligibleState: "All",
+    maxLandSizeHectares: 20.0,
+    benefitDetails: "Comprehensive risk coverage from pre-sowing to post-harvest failures with premium capped at 2.0%."
+  }
+];
+
 const LEAF_DISEASE_DATA: Record<string, { diseaseName: string; localName: string; medicine: string; dosage: string; tips: string[] }> = {
   tomato: {
     diseaseName: "Early Blight (Alternaria solani)",
@@ -1210,21 +1245,28 @@ export default function Dashboard() {
 
   const handleMatchSchemes = async () => {
     setLoadingSchemes(true);
+    const landSizeHectares = (parseFloat(subsidyLandSize) || 0) * 0.404686;
     try {
-      const landSizeHectares = (parseFloat(subsidyLandSize) || 0) * 0.404686;
       const res = await fetch(`http://localhost:8080/api/v1/schemes/eligible?state=${encodeURIComponent(subsidyState)}&landSize=${landSizeHectares}`, {
         headers: { "Authorization": `Bearer ${user?.token}` }
       });
-      if (res.status === 401 || res.status === 403) {
-        logout();
-        return;
-      }
       if (res.ok) {
         const data = await res.json();
         setMatchedSchemes(data);
+      } else {
+        const offlineFiltered = DEFAULT_GOVT_SCHEMES.filter(s => 
+          (s.eligibleState === "All" || s.eligibleState === subsidyState) && 
+          s.maxLandSizeHectares >= landSizeHectares
+        );
+        setMatchedSchemes(offlineFiltered);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Eligible schemes fetch failed, falling back to client-side database:", err);
+      const offlineFiltered = DEFAULT_GOVT_SCHEMES.filter(s => 
+        (s.eligibleState === "All" || s.eligibleState === subsidyState) && 
+        s.maxLandSizeHectares >= landSizeHectares
+      );
+      setMatchedSchemes(offlineFiltered);
     }
     setLoadingSchemes(false);
   };
