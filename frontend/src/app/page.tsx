@@ -679,15 +679,16 @@ export default function Dashboard() {
     return fallbackPrice;
   };
 
-  const getPriceChange = (cropValue: string) => {
+  const getPriceChange = (cropValue: string, livePrice: number) => {
     const hash = cropValue.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const percentChange = ((hash % 19) - 9) / 2.5; // generates a value between -3.6% and +3.6%
-    const direction = percentChange >= 0 ? "+" : "";
-    const color = percentChange >= 0 ? "text-emerald-500" : "text-rose-500";
-    const arrow = percentChange >= 0 ? "▲" : "▼";
-    const bg = percentChange >= 0 ? "bg-emerald-950/30 border-emerald-800/20" : "bg-rose-950/30 border-rose-800/20";
+    const rupeeChange = Math.round(livePrice * (percentChange / 100));
+    const direction = rupeeChange >= 0 ? "+" : "-";
+    const color = rupeeChange >= 0 ? "text-emerald-500" : "text-rose-500";
+    const arrow = rupeeChange >= 0 ? "▲" : "▼";
+    const bg = rupeeChange >= 0 ? "bg-emerald-950/30 border-emerald-800/20" : "bg-rose-950/30 border-rose-800/20";
     return {
-      text: `${direction}${percentChange.toFixed(1)}%`,
+      text: `${direction}₹${Math.abs(rupeeChange).toLocaleString()}`,
       color,
       arrow,
       bg
@@ -3342,7 +3343,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredCrops.map((crop, idx) => {
                       const livePrice = getLivePrice(crop.value, crop.marketPricePerQuintal);
-                      const trend = getPriceChange(crop.value);
+                      const trend = getPriceChange(crop.value, livePrice);
                       return (
                         <div key={idx} className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
                           <div className="flex justify-between items-center">
