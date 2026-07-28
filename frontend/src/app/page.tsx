@@ -679,6 +679,21 @@ export default function Dashboard() {
     return fallbackPrice;
   };
 
+  const getPriceChange = (cropValue: string) => {
+    const hash = cropValue.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const percentChange = ((hash % 19) - 9) / 2.5; // generates a value between -3.6% and +3.6%
+    const direction = percentChange >= 0 ? "+" : "";
+    const color = percentChange >= 0 ? "text-emerald-500" : "text-rose-500";
+    const arrow = percentChange >= 0 ? "▲" : "▼";
+    const bg = percentChange >= 0 ? "bg-emerald-950/30 border-emerald-800/20" : "bg-rose-950/30 border-rose-800/20";
+    return {
+      text: `${direction}${percentChange.toFixed(1)}%`,
+      color,
+      arrow,
+      bg
+    };
+  };
+
   // Change Password state
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -3327,6 +3342,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredCrops.map((crop, idx) => {
                       const livePrice = getLivePrice(crop.value, crop.marketPricePerQuintal);
+                      const trend = getPriceChange(crop.value);
                       return (
                         <div key={idx} className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
                           <div className="flex justify-between items-center">
@@ -3335,11 +3351,18 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                               ₹{(livePrice / 100).toFixed(2)}/kg equivalent
                             </span>
                           </div>
-                          <h4 className="text-4xl font-extrabold text-zinc-100">
-                            ₹{livePrice.toLocaleString()}{" "}
-                            <span className="text-xs font-normal text-zinc-500">/ Quintal</span>
-                          </h4>
-                          <p className="text-xs text-zinc-400 leading-relaxed">
+                          
+                          <div className="flex items-baseline justify-between">
+                            <h4 className="text-4xl font-extrabold text-zinc-100">
+                              ₹{livePrice.toLocaleString()}{" "}
+                              <span className="text-xs font-normal text-zinc-500">/ Quintal</span>
+                            </h4>
+                            <span className={`text-xs font-bold px-2 py-1 rounded-lg border flex items-center gap-1.5 ${trend.color} ${trend.bg}`}>
+                              {trend.arrow} {trend.text}
+                            </span>
+                          </div>
+                          
+                          <p className="text-xs text-zinc-400 leading-relaxed font-sans">
                             Projected Mandi Rates for {t(crop.labelEn, crop.labelHi, crop.labelTe)}. Expected average yield of {crop.yieldPerAcreQuintals} Quintals per acre based on local soil profiles.
                           </p>
                           <div className="pt-2 flex justify-between items-center text-[10px] text-zinc-500 border-t border-zinc-850">
