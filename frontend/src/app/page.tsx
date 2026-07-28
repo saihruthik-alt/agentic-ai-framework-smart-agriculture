@@ -1211,7 +1211,8 @@ export default function Dashboard() {
   const handleMatchSchemes = async () => {
     setLoadingSchemes(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/schemes/eligible?state=${encodeURIComponent(subsidyState)}&landSize=${parseFloat(subsidyLandSize)}`, {
+      const landSizeHectares = (parseFloat(subsidyLandSize) || 0) * 0.404686;
+      const res = await fetch(`http://localhost:8080/api/v1/schemes/eligible?state=${encodeURIComponent(subsidyState)}&landSize=${landSizeHectares}`, {
         headers: { "Authorization": `Bearer ${user?.token}` }
       });
       if (res.ok) {
@@ -3907,7 +3908,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                     </div>
 
                     <div>
-                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">TOTAL LAND HOLDINGS (HECTARES)</label>
+                      <label className="block text-[10px] text-zinc-500 font-bold mb-1">TOTAL LAND HOLDINGS (ACRES)</label>
                       <input
                         type="number"
                         step="0.1"
@@ -3960,7 +3961,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                             
                             <div className="flex justify-between items-center pt-2">
                               <div className="text-[10px] text-zinc-500 font-mono">
-                                Eligible Land Limit: &lt;= {scheme.maxLandSizeHectares} Hectares
+                                Eligible Land Limit: &lt;= {(scheme.maxLandSizeHectares / 0.404686).toFixed(1)} Acres
                               </div>
                               <a
                                 href={applyUrl}
