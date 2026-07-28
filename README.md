@@ -101,3 +101,35 @@ cd frontend
 npm install
 npm run dev
 ```
+
+---
+
+## 📱 5. Native Android APK & Universal Network Setup
+The platform is fully packaged for Android using **Ionic Capacitor** and **Gradle**:
+- **Precompiled APK**: You can download and install the final debug package directly: **[SmartAgri-debug.apk](SmartAgri-debug.apk)**.
+- **Universal Network Settings (No Rebuilding!)**:
+  1. Open the APK on your Android device (phone or emulator).
+  2. On the Login screen, click the **⚙️ App & Server Configuration Settings** button at the bottom.
+  3. Enter your custom backend API server endpoints:
+     - **Core Backend API URL** (e.g., `http://192.168.29.237:8080` if on local Wi-Fi, or your public Ngrok/localtunnel URL).
+     - **AI Agents API URL** (e.g., `http://192.168.29.237:8000`).
+  4. Save changes. The app immediately routes all database requests and WebSocket connections to your active server target!
+- **Target Compile Script**:
+  You can compile a custom-routed APK in one command by passing your target IP address (e.g., Mac's local IP or Emulator's `10.0.2.2` bridge):
+  ```bash
+  ./build_apk.sh 192.168.29.237
+  ```
+
+---
+
+## 🌾 6. eNAM Live Market Mandi Prices
+- Integrated live APMC wholesale mandi prices using the official **Open Government Data (OGD) Platform India** API.
+- Replaced percentages with stock-style absolute Rupee price change trends (e.g. `▲ +₹120` or `▼ -₹85`).
+- Syncs automatically to mandi crop selection cards, cultivation profitability calculators, and main dashboard widgets.
+
+---
+
+## 🏛️ 7. Govt Schemes & Resilient Acres Conversion
+- Converted input fields and eligibility criteria displays inside the **Govt Schemes** optimizer to use **Acres** instead of hectares (e.g. `TOTAL LAND HOLDINGS (ACRES)`).
+- **Fail-safe Offline Fallback**: If the backend API throws a session timeout warning or is offline, the client-side immediately falls back to filtering an offline copy of national/regional schemes (like PM-KISAN or Rythu Bandhu) so that scanning always works instantly!
+
