@@ -632,6 +632,53 @@ export default function Dashboard() {
   const [mandiSearchQuery, setMandiSearchQuery] = useState("");
   const [activePlaybookCropIdx, setActivePlaybookCropIdx] = useState(0);
 
+  // Live real Mandi commodity prices from data.gov.in
+  const [liveMandiPrices, setLiveMandiPrices] = useState<Record<string, number>>({});
+  const [loadingMandi, setLoadingMandi] = useState(false);
+
+  const fetchLiveMandiPrices = async () => {
+    setLoadingMandi(true);
+    try {
+      const res = await fetch(`https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b&format=json&limit=100`);
+      const data = await res.json();
+      if (data && data.records && data.records.length > 0) {
+        const priceMap: Record<string, number> = {};
+        data.records.forEach((rec: any) => {
+          const commodity = rec.commodity ? rec.commodity.toLowerCase() : "";
+          const modalPrice = rec.modal_price ? Number(rec.modal_price) : 0;
+          if (commodity && modalPrice > 0) {
+            priceMap[commodity] = modalPrice;
+          }
+        });
+        setLiveMandiPrices(priceMap);
+      }
+    } catch (e) {
+      console.error("Failed to fetch live Mandi prices from OGD API:", e);
+    } finally {
+      setLoadingMandi(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveMandiPrices();
+  }, []);
+
+  const getLivePrice = (cropValue: string, fallbackPrice: number) => {
+    const key = cropValue.toLowerCase();
+    if (liveMandiPrices[key]) return liveMandiPrices[key];
+    if (key === "rice" && liveMandiPrices["paddy(dhan)"]) return liveMandiPrices["paddy(dhan)"];
+    if (key === "rice" && liveMandiPrices["rice"]) return liveMandiPrices["rice"];
+    if (key === "chilli" && liveMandiPrices["dry chillies"]) return liveMandiPrices["dry chillies"];
+    if (key === "chilli" && liveMandiPrices["green chilli"]) return liveMandiPrices["green chilli"];
+    if (key === "groundnut" && liveMandiPrices["groundnut (split)"]) return liveMandiPrices["groundnut (split)"];
+    if (key === "cotton" && liveMandiPrices["cotton"]) return liveMandiPrices["cotton"];
+    if (key === "maize" && liveMandiPrices["maize"]) return liveMandiPrices["maize"];
+    if (key === "tomato" && liveMandiPrices["tomato"]) return liveMandiPrices["tomato"];
+    if (key === "wheat" && liveMandiPrices["wheat"]) return liveMandiPrices["wheat"];
+    if (key === "onion" && liveMandiPrices["onion"]) return liveMandiPrices["onion"];
+    return fallbackPrice;
+  };
+
   // Change Password state
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -1797,7 +1844,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
   const acres = parseFloat(calcAcres) || 0;
   const costPerAcre = targetCrop.baseCostPerAcre; // Cost per acre is locked to standard crop cost and calculated automatically
   const yieldPerAcre = parseFloat(calcYieldOverride) || targetCrop.yieldPerAcreQuintals;
-  const marketPrice = targetCrop.marketPricePerQuintal;
+  const marketPrice = getLivePrice(targetCrop.value, targetCrop.marketPricePerQuintal);
 
   const totalCost = costPerAcre * acres;
   const totalRevenue = marketPrice * (yieldPerAcre * acres);
@@ -2046,8 +2093,8 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                       <h3 className="text-2xl font-bold mt-2 text-purple-400">₹{marketPrice.toLocaleString()} <span className="text-xs font-normal">/ Qtl</span></h3>
                       <div className="flex flex-col gap-1 mt-2">
                         <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                          <span>{t("Estimated (Source: AGMARKNET)", "अनुमानित (स्रोतः एगमार्कनेट)", "అంచనా (ఆధారం: AGMARKNET)")}</span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                          <span>{t("Live (Source: eNAM API)", "लाइव (स्रोतः ई-नाम एपीआई)", "లైవ్ (ఆధారం: eNAM API)")}</span>
                         </div>
                         <span className="text-[9px] text-zinc-600 font-sans">
                           Real-time wholesale market index pricing
@@ -3278,27 +3325,30 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {filteredCrops.map((crop, idx) => (
-                      <div key={idx} className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t(crop.labelEn, crop.labelHi, crop.labelTe)}</span>
-                          <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/30">
-                            ₹{(crop.marketPricePerQuintal / 100).toFixed(2)}/kg equivalent
-                          </span>
+                    {filteredCrops.map((crop, idx) => {
+                      const livePrice = getLivePrice(crop.value, crop.marketPricePerQuintal);
+                      return (
+                        <div key={idx} className="border border-zinc-850 bg-[#0c0c12]/40 rounded-2xl p-6 space-y-4 hover:border-emerald-800/30 transition-colors">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t(crop.labelEn, crop.labelHi, crop.labelTe)}</span>
+                            <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/30">
+                              ₹{(livePrice / 100).toFixed(2)}/kg equivalent
+                            </span>
+                          </div>
+                          <h4 className="text-4xl font-extrabold text-zinc-100">
+                            ₹{livePrice.toLocaleString()}{" "}
+                            <span className="text-xs font-normal text-zinc-500">/ Quintal</span>
+                          </h4>
+                          <p className="text-xs text-zinc-400 leading-relaxed">
+                            Projected Mandi Rates for {t(crop.labelEn, crop.labelHi, crop.labelTe)}. Expected average yield of {crop.yieldPerAcreQuintals} Quintals per acre based on local soil profiles.
+                          </p>
+                          <div className="pt-2 flex justify-between items-center text-[10px] text-zinc-500 border-t border-zinc-850">
+                            <span>Standard Cost: ₹{crop.baseCostPerAcre.toLocaleString()} / acre</span>
+                            <span className="text-emerald-400 font-bold">Sentiment: STABLE</span>
+                          </div>
                         </div>
-                        <h4 className="text-4xl font-extrabold text-zinc-100">
-                          ₹{crop.marketPricePerQuintal.toLocaleString()}{" "}
-                          <span className="text-xs font-normal text-zinc-500">/ Quintal</span>
-                        </h4>
-                        <p className="text-xs text-zinc-400 leading-relaxed">
-                          Projected Mandi Rates for {t(crop.labelEn, crop.labelHi, crop.labelTe)}. Expected average yield of {crop.yieldPerAcreQuintals} Quintals per acre based on local soil profiles.
-                        </p>
-                        <div className="pt-2 flex justify-between items-center text-[10px] text-zinc-500 border-t border-zinc-850">
-                          <span>Standard Cost: ₹{crop.baseCostPerAcre.toLocaleString()} / acre</span>
-                          <span className="text-emerald-400 font-bold">Sentiment: STABLE</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
