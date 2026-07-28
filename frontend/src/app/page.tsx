@@ -2652,8 +2652,12 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                           : "border-zinc-850 bg-zinc-950/45 hover:border-zinc-700"
                       }`}
                     >
-                      <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-850 flex items-center justify-center text-4xl">
-                        🍂
+                      <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-850 overflow-hidden relative">
+                        <img
+                          src="/tomato_leaf.jpg"
+                          alt="Tomato Leaf Early Blight"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
                       </div>
                       <div>
                         <span className="font-bold text-xs text-zinc-200 block">Tomato Leaf (Early Blight)</span>
@@ -2670,8 +2674,12 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                           : "border-zinc-850 bg-zinc-950/45 hover:border-zinc-700"
                       }`}
                     >
-                      <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-850 flex items-center justify-center text-4xl">
-                        🌾
+                      <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-850 overflow-hidden relative">
+                        <img
+                          src="/rice_leaf.jpg"
+                          alt="Rice Leaf Blast"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
                       </div>
                       <div>
                         <span className="font-bold text-xs text-zinc-200 block">Rice Leaf (Blast)</span>
@@ -2688,8 +2696,12 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
                           : "border-zinc-850 bg-zinc-950/45 hover:border-zinc-700"
                       }`}
                     >
-                      <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-855 flex items-center justify-center text-4xl">
-                        🌿
+                      <div className="h-28 rounded-xl bg-zinc-900 border border-zinc-855 overflow-hidden relative">
+                        <img
+                          src="/cotton_leaf.jpg"
+                          alt="Cotton Leaf Spot"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
                       </div>
                       <div>
                         <span className="font-bold text-xs text-zinc-200 block">Cotton Leaf (Spot)</span>
