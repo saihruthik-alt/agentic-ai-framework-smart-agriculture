@@ -1215,6 +1215,10 @@ export default function Dashboard() {
       const res = await fetch(`http://localhost:8080/api/v1/schemes/eligible?state=${encodeURIComponent(subsidyState)}&landSize=${landSizeHectares}`, {
         headers: { "Authorization": `Bearer ${user?.token}` }
       });
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setMatchedSchemes(data);
