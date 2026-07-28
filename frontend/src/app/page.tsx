@@ -61,6 +61,25 @@ interface Farm {
   locationName?: string;
 }
 
+const getApiBaseUrl = (): string => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("custom_api_base") || "http://localhost:8080";
+  }
+  return "http://localhost:8080";
+};
+
+const getAiBaseUrl = (): string => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("custom_ai_base") || "http://localhost:8000";
+  }
+  return "http://localhost:8000";
+};
+
+const getAiWsUrl = () => {
+  const base = getAiBaseUrl();
+  return base.replace("http://", "ws://").replace("https://", "wss://");
+};
+
 interface Crop {
   id?: string;
   name: string;
@@ -776,7 +795,7 @@ export default function Dashboard() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/api/v1/ws/agents");
+    const ws = new WebSocket(`${getAiWsUrl()}/api/v1/ws/agents`);
     
     ws.onopen = () => {
       console.log("WebSocket connected to backend-ai");
@@ -961,7 +980,7 @@ export default function Dashboard() {
   const fetchHealthChecks = async () => {
     setLoadingHealth(true);
     try {
-      const coreRes = await fetch("http://localhost:8080/api/v1/health");
+      const coreRes = await fetch(`${getApiBaseUrl()}/api/v1/health`);
       if (coreRes.ok) {
         setCoreHealth(await coreRes.json());
       } else {
@@ -972,7 +991,7 @@ export default function Dashboard() {
     }
 
     try {
-      const aiRes = await fetch("http://localhost:8000/api/v1/health");
+      const aiRes = await fetch(`${getAiBaseUrl()}/api/v1/health`);
       if (aiRes.ok) {
         setAiHealth(await aiRes.json());
       } else {
@@ -989,7 +1008,7 @@ export default function Dashboard() {
     if (!user) return;
     setLoadingFarms(true);
     try {
-      const res = await fetch("http://localhost:8080/api/v1/farms", {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms`, {
         headers: {
           "Authorization": `Bearer ${user.token}`
         }
@@ -1025,7 +1044,7 @@ export default function Dashboard() {
     if (!user) return;
     setLoadingCrops(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/crops`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${farmId}/crops`, {
         headers: {
           "Authorization": `Bearer ${user.token}`
         }
@@ -1053,7 +1072,7 @@ export default function Dashboard() {
     if (!user) return;
     const load = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry/latest`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${farmId}/telemetry/latest`, {
           headers: {
             "Authorization": `Bearer ${user.token}`
           }
@@ -1075,7 +1094,7 @@ export default function Dashboard() {
               recordedAt: new Date().toISOString()
             };
             
-            await fetch(`http://localhost:8080/api/v1/farms/${farmId}/telemetry`, {
+            await fetch(`${getApiBaseUrl()}/api/v1/farms/${farmId}/telemetry`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -1097,7 +1116,7 @@ export default function Dashboard() {
     if (!user) return;
     setLoadingTransactions(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/transactions`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${farmId}/transactions`, {
         headers: { "Authorization": `Bearer ${user.token}` }
       });
       if (res.ok) {
@@ -1114,7 +1133,7 @@ export default function Dashboard() {
     if (!user) return;
     setLoadingShipments(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/logistics`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${farmId}/logistics`, {
         headers: { "Authorization": `Bearer ${user.token}` }
       });
       if (res.ok) {
@@ -1131,7 +1150,7 @@ export default function Dashboard() {
     if (!user) return;
     setLoadingLivestock(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}/livestock`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${farmId}/livestock`, {
         headers: { "Authorization": `Bearer ${user.token}` }
       });
       if (res.ok) {
@@ -1149,7 +1168,7 @@ export default function Dashboard() {
     if (!user || !selectedFarm) return;
     setTxSuccess("");
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/transactions`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/transactions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1179,7 +1198,7 @@ export default function Dashboard() {
     if (!user || !selectedFarm) return;
     setShipSuccess("");
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/logistics`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/logistics`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1207,7 +1226,7 @@ export default function Dashboard() {
   const handleUpdateShipmentStatus = async (shipmentId: string, nextStatus: string) => {
     if (!user || !selectedFarm) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/logistics/${shipmentId}?status=${nextStatus}`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/logistics/${shipmentId}?status=${nextStatus}`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${user.token}`
@@ -1224,7 +1243,7 @@ export default function Dashboard() {
   const handleCalculateCarbon = async () => {
     setLoadingCarbon(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/carbon-estimator", {
+      const res = await fetch(`${getAiBaseUrl()}/api/v1/carbon-estimator`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1247,7 +1266,7 @@ export default function Dashboard() {
     setLoadingSchemes(true);
     const landSizeHectares = (parseFloat(subsidyLandSize) || 0) * 0.404686;
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/schemes/eligible?state=${encodeURIComponent(subsidyState)}&landSize=${landSizeHectares}`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/schemes/eligible?state=${encodeURIComponent(subsidyState)}&landSize=${landSizeHectares}`, {
         headers: { "Authorization": `Bearer ${user?.token}` }
       });
       if (res.ok) {
@@ -1276,7 +1295,7 @@ export default function Dashboard() {
     if (!user || !selectedFarm) return;
     setLiveSuccess("");
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/livestock`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/livestock`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1330,7 +1349,7 @@ export default function Dashboard() {
       };
       
       try {
-        await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/telemetry`, {
+        await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/telemetry`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1339,7 +1358,7 @@ export default function Dashboard() {
           body: JSON.stringify(payload)
         });
         
-        const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/telemetry/latest`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/telemetry/latest`, {
           headers: {
             "Authorization": `Bearer ${user.token}`
           }
@@ -1362,7 +1381,7 @@ export default function Dashboard() {
   const handleExportReport = async () => {
     if (!user || !selectedFarm) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/report`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/report`, {
         headers: {
           "Authorization": `Bearer ${user.token}`
         }
@@ -1435,7 +1454,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
         hectares = hectares * 0.404686;
       }
 
-      const res = await fetch("http://localhost:8080/api/v1/farms", {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${user.token}`,
@@ -1482,7 +1501,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
     const targetCrop = AVAILABLE_CROPS[newCropIndex];
 
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/crops`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/crops`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${user.token}`,
@@ -1519,7 +1538,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
     if (!user) return;
     if (!confirm("Are you sure you want to delete this farm profile and all its associated crops?")) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${farmId}`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${farmId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${user.token}`
@@ -1549,7 +1568,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
     if (!user || !selectedFarm) return;
     if (!confirm("Are you sure you want to delete this crop record?")) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/farms/${selectedFarm.id}/crops/${cropId}`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/farms/${selectedFarm.id}/crops/${cropId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${user.token}`
@@ -1720,7 +1739,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
       const mockBlob = new Blob(["mock-image-data"], { type: "image/jpeg" });
       formData.append("file", mockBlob, `${sampleKey}.jpg`);
 
-      const res = await fetch("http://localhost:8000/api/v1/cv/disease", {
+      const res = await fetch(`${getAiBaseUrl()}/api/v1/cv/disease`, {
         method: "POST",
         body: formData
       });
@@ -1794,7 +1813,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://localhost:8000/api/v1/cv/disease", {
+      const res = await fetch(`${getAiBaseUrl()}/api/v1/cv/disease`, {
         method: "POST",
         body: formData
       });
@@ -1859,7 +1878,7 @@ ${!report.latestTelemetry ? "No sensor logs captured in database." : `
 
     if (!user) return;
     try {
-      const res = await fetch("http://localhost:8080/api/v1/auth/password", {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/auth/password`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${user.token}`,

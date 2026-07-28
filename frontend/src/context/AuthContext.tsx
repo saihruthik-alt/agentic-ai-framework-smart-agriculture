@@ -4,6 +4,13 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useRouter } from "next/navigation";
 import { getCookie, setCookie, eraseCookie } from "../utils/cookies";
 
+const getApiBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("custom_api_base") || "http://localhost:8080";
+  }
+  return "http://localhost:8080";
+};
+
 export interface UserSession {
   userId: string;
   username: string;
@@ -60,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       let response;
       try {
-        response = await fetch("http://localhost:8080/api/v1/auth/login", {
+        response = await fetch(`${getApiBaseUrl()}/api/v1/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
@@ -104,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       let response;
       try {
-        response = await fetch("http://localhost:8080/api/v1/auth/register", {
+        response = await fetch(`${getApiBaseUrl()}/api/v1/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, email, password, role })
@@ -148,7 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       let response;
       try {
-        response = await fetch("http://localhost:8080/api/v1/auth/google", {
+        response = await fetch(`${getApiBaseUrl()}/api/v1/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ credential, username })

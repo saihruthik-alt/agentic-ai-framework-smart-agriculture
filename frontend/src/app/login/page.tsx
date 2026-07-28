@@ -20,19 +20,31 @@ export default function LoginPage() {
   
   const [googleClientId, setGoogleClientId] = useState<string>("");
   const [showConfig, setShowConfig] = useState(false);
+  const [apiBase, setApiBase] = useState("http://localhost:8080");
+  const [aiBase, setAiBase] = useState("http://localhost:8000");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("google_client_id") || "";
       setGoogleClientId(stored);
+      setApiBase(localStorage.getItem("custom_api_base") || "http://localhost:8080");
+      setAiBase(localStorage.getItem("custom_ai_base") || "http://localhost:8000");
     }
   }, []);
 
-  const saveClientId = (id: string) => {
-    localStorage.setItem("google_client_id", id.trim());
-    setGoogleClientId(id.trim());
-    window.location.reload();
+  const saveApiBase = (url: string) => {
+    const val = url.trim() || "http://localhost:8080";
+    localStorage.setItem("custom_api_base", val);
+    setApiBase(val);
   };
+
+  const saveAiBase = (url: string) => {
+    const val = url.trim() || "http://localhost:8000";
+    localStorage.setItem("custom_ai_base", val);
+    setAiBase(val);
+  };
+
+
 
   useEffect(() => {
     if (!googleClientId) return;
@@ -283,26 +295,48 @@ export default function LoginPage() {
             onClick={() => setShowConfig(!showConfig)}
             className="text-[10px] text-zinc-500 hover:text-zinc-400 flex items-center justify-center gap-1 mx-auto transition-colors cursor-pointer"
           >
-            ⚙️ {googleClientId ? "Change" : "Configure"} Google OAuth Client ID
+            ⚙️ App & Server Configuration Settings
           </button>
           
           {showConfig && (
-            <div className="mt-3 p-3 bg-zinc-950/80 rounded-xl border border-zinc-900 text-left">
-              <p className="text-[9px] text-zinc-400 leading-relaxed mb-2">
-                To sign in with your <strong>real Google Account</strong>, enter your Google Cloud OAuth Client ID (must authorize <code>http://localhost:3000</code>):
-              </p>
-              <input
-                type="text"
-                placeholder="123456-abcdef.apps.googleusercontent.com"
-                defaultValue={googleClientId}
-                onBlur={(e) => saveClientId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveClientId((e.target as HTMLInputElement).value);
-                }}
-                className="w-full rounded-lg border border-zinc-800 bg-[#07070a] px-3 py-1.5 text-[10px] text-zinc-300 placeholder-zinc-700 focus:border-emerald-500 focus:outline-none"
-              />
-              <p className="text-[8px] text-zinc-650 mt-1 leading-normal">
-                Press Enter or click outside to save. Leave blank to reset.
+            <div className="mt-3 p-3 bg-zinc-950/80 rounded-xl border border-zinc-900 text-left space-y-3">
+              <div>
+                <label className="block text-[8px] text-zinc-400 font-bold uppercase mb-1">CORE BACKEND API URL</label>
+                <input
+                  type="text"
+                  placeholder="http://localhost:8080"
+                  value={apiBase}
+                  onChange={(e) => saveApiBase(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-[#07070a] px-3 py-1.5 text-[10px] text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[8px] text-zinc-400 font-bold uppercase mb-1">AI AGENTS API URL</label>
+                <input
+                  type="text"
+                  placeholder="http://localhost:8000"
+                  value={aiBase}
+                  onChange={(e) => saveAiBase(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-800 bg-[#07070a] px-3 py-1.5 text-[10px] text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[8px] text-zinc-400 font-bold uppercase mb-1">GOOGLE OAUTH CLIENT ID</label>
+                <input
+                  type="text"
+                  placeholder="123456-abcdef.apps.googleusercontent.com"
+                  value={googleClientId}
+                  onChange={(e) => {
+                    localStorage.setItem("google_client_id", e.target.value.trim());
+                    setGoogleClientId(e.target.value.trim());
+                  }}
+                  className="w-full rounded-lg border border-zinc-800 bg-[#07070a] px-3 py-1.5 text-[10px] text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+              <p className="text-[8px] text-zinc-650 leading-normal">
+                Configurations are saved locally in the browser's storage and used immediately for all requests.
               </p>
             </div>
           )}
