@@ -32,7 +32,7 @@ cd ..
 # 4. Starting Next.js Frontend
 echo "⚛️ Starting Next.js Production server..."
 cd frontend
-npx next start -p ${FRONTEND_PORT} > frontend_run.log 2>&1 &
+npx serve -s out -p ${FRONTEND_PORT} > frontend_run.log 2>&1 &
 FRONTEND_PID=$!
 cd ..
 
